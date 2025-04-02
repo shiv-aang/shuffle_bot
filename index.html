@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixel TV Shuffler - Flat Style</title>
+    <!-- Load Pixel Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        /* --- CSS Variables (Palette & Sizing) --- */
+        :root {
+            /* Colors based on reference image */
+            --bg-color-1: #e6a5a9;   /* Light Pink/Coral */
+            --bg-color-2: #4c8ca5;   /* Teal/Blue */
+            --bg-color-3: #4b435a;   /* Dark Purple/Grey */
+            --tv-body: #f1dcc3;     /* Light Pink/Peach (TV Body) */
+            --tv-outline: #302c33;   /* Dark Purple/Black (Outline) */
+            --panel-bg: #5cc8c7;    /* Teal/Blue (Panel/Bezel) */
+            --panel-highlight: #f6f1e1; /* Pale Yellow/Cream (Bezel Highlight) */
+            --knob-center: #e6a5a9; /* Pink/Coral (Knob detail) */
+            --screen-bg: #000000;   /* Black (Video Player Background) */
+            --loading-text: #ffffff;/* White */
+
+            /* Base size for pixel blocks */
+            --pixel-unit: 10px; /* Increase/decrease this to scale the entire TV */
+
+            /* Derived sizes based on pixel unit */
+            --border-width: var(--pixel-unit);
+            --outline-width: var(--pixel-unit);
+            --element-gap: calc(var(--pixel-unit) * 2); /* Gap between elements */
+        }
+
+        /* --- Basic Setup & Pixel Rendering --- */
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* Apply checkerboard background */
+            background-color: var(--bg-color-3);
+            background-image:
+                linear-gradient(45deg, 
+                    var(--bg-color-1) 12.5%, 
+                    transparent 12.5%, 
+                    transparent 37.5%, 
+                    var(--bg-color-2) 37.5%, 
+                    var(--bg-color-2) 62.5%,
+                    transparent 62.5%,
+                    transparent 87.5%,
+                    var(--bg-color-1) 87.5%);
+            background-size: 
+                calc(var(--pixel-unit) * 60) calc(var(--pixel-unit) * 60), /* Stripe size */
+            background-position: 0 0, 0 0;
+            font-family: 'Press Start 2P', cursive; /* Apply pixel font */
+            overflow: hidden; /* Prevent scrollbars */
+            /* Force nearest-neighbor scaling for crisp pixels */
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+
+        /* --- TV Container --- */
+        .tv-container {
+            /* Wrapper to hold the TV */
+            position: relative;
+            /* Define overall size based on pixel units (adjust multipliers as needed) */
+            width: calc(var(--pixel-unit) * 90);
+            height: calc(var(--pixel-unit) * 60);
+        }
+
+        /* --- TV Body --- */
+        .tv-body {
+            width: 100%;
+            height: 100%;
+            background-color: var(--tv-body);
+            border: var(--outline-width) solid var(--tv-outline);
+            border-radius: calc(var(--pixel-unit) * 2); /* Rounded corners */
+            display: flex; /* Use flexbox to position screen and controls */
+            padding: var(--element-gap); /* Inner padding */
+            box-sizing: border-box; /* Include padding and border in width/height */
+            position: relative; /* For positioning feet */
+        }
+
+        /* --- Screen Area (Left Side) --- */
+        .screen-area {
+            flex-grow: 1; /* Take available space */
+            height: 100%;
+            background-color: var(--panel-bg); /* Bezel background */
+            border: var(--outline-width) solid var(--tv-outline);
+            border-radius: var(--pixel-unit); /* Slightly rounded bezel */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: var(--pixel-unit); /* Padding inside bezel */
+            box-sizing: border-box;
+            /* Inner highlight using box-shadow */
+            box-shadow: inset 0 0 0 var(--pixel-unit) var(--panel-highlight);
+        }
+
+        .screen {
+            width: 100%;
+            height: 100%;
+            background-color: var(--screen-bg); /* Default screen background */
+            overflow: hidden; /* Clip the YouTube player */
+            position: relative; /* For positioning overlays */
+            border: var(--border-width) solid var(--tv-outline); /* Inner border for screen */
+        }
+
+        /* --- Controls Panel (Right Side) --- */
+        .controls-panel {
+            width: calc(var(--pixel-unit) * 20); /* Fixed width for controls */
+            height: 100%;
+            background-color: var(--panel-bg);
+            border: var(--outline-width) solid var(--tv-outline);
+            border-radius: var(--pixel-unit);
+            margin-left: var(--element-gap); /* Space between screen and controls */
+            display: flex;
+            flex-direction: column; /* Stack controls vertically */
+            justify-content: space-around; /* Distribute space */
+            align-items: center; /* Center controls horizontally */
+            padding: var(--element-gap) 0; /* Vertical padding */
+            box-sizing: border-box;
+        }
+
+        /* --- Individual Controls --- */
+        .control {
+            background-color: var(--tv-body); /* Match TV body color */
+            border: var(--outline-width) solid var(--tv-outline);
+            position: relative; /* For pseudo-elements */
+            box-sizing: border-box;
+            cursor: pointer; /* Indicate clickable */
+        }
+        .control:active {
+            /* Simple click feedback */
+            filter: brightness(0.9);
+        }
+
+        /* Top Knob (Channel) */
+        .knob-1 {
+            width: calc(var(--pixel-unit) * 10);
+            height: calc(var(--pixel-unit) * 10);
+            border-radius: 50%; /* Make it circular */
+        }
+        .knob-1::after { /* Inner circle detail */
+            content: '';
+            position: absolute;
+            width: calc(var(--pixel-unit) * 4);
+            height: calc(var(--pixel-unit) * 4);
+            background-color: var(--knob-center);
+            border: var(--outline-width) solid var(--tv-outline);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* Middle Knob (Mute/Volume) */
+        .knob-2 {
+            width: calc(var(--pixel-unit) * 10);
+            height: calc(var(--pixel-unit) * 10);
+            border-radius: 50%;
+        }
+        .knob-2::after { /* Diagonal line detail */
+            content: '';
+            position: absolute;
+            width: 80%; /* Adjust line width */
+            height: var(--border-width); /* Line thickness */
+            background-color: var(--knob-center);
+            border: calc(var(--outline-width)/2) solid var(--tv-outline); /* Thinner outline for line */
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg); /* Center and rotate */
+        }
+
+        /* Bottom Slider (Non-interactive visual) */
+        .slider {
+            width: calc(var(--pixel-unit) * 12);
+            height: calc(var(--pixel-unit) * 6);
+            border-radius: var(--pixel-unit);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            align-items: center;
+            padding: var(--pixel-unit) 0;
+            cursor: default; /* Not interactive */
+        }
+         .slider:active { filter: none; } /* No click feedback */
+
+        .slider-line { /* Lines inside the slider */
+            width: 70%;
+            height: var(--border-width);
+            background-color: var(--tv-outline);
+        }
+
+        /* --- TV Feet --- */
+        .tv-feet {
+            position: absolute; /* Position relative to tv-body */
+            bottom: calc(var(--element-gap) * -1 - var(--border-width)); /* Position below the body */
+            left: 0;
+            width: 100%;
+            height: calc(var(--pixel-unit) * 4); /* Height of feet */
+            display: flex;
+            justify-content: space-between; /* Space out feet */
+            padding: 0 calc(var(--pixel-unit) * 10); /* Indent feet from edges */
+            box-sizing: border-box;
+        }
+
+        .foot {
+            width: calc(var(--pixel-unit) * 10); /* Width of each foot */
+            height: 100%;
+            background-color: var(--tv-body);
+            border: var(--outline-width) solid var(--tv-outline);
+            border-radius: 0 0 var(--pixel-unit) var(--pixel-unit); /* Rounded bottom corners */
+        }
+
+        /* --- YouTube Player & Overlays --- */
+        #player {
+            /* Player takes full space within the .screen div */
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 5; /* Above screen background */
+        }
+
+        .screen-overlay {
+            /* Common style for overlays (loading, static, color bars) */
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 8; /* Above player */
+            pointer-events: none; /* Allow clicks through to player if needed */
+            opacity: 0; /* Hidden by default */
+            transition: opacity 0.2s linear; /* Fade effect */
+            display: flex; /* Used by color bars and loading */
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(0, 0, 0, 0.5); /* Optional semi-transparent bg */
+        }
+
+        .screen-overlay.visible {
+            /* Class to make overlays visible */
+            opacity: 1;
+        }
+
+        .loading {
+            /* Specific style for loading text */
+            color: var(--loading-text);
+            font-size: calc(var(--pixel-unit) * 3);
+            text-shadow: var(--pixel-unit) var(--pixel-unit) 0 var(--tv-outline);
+            z-index: 10; /* Highest overlay */
+        }
+
+        .static {
+            /* Style for static effect */
+            background-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><filter id="noiseFilter"><feTurbulence type="fractalNoise" baseFrequency="1.5" numOctaves="1" stitchTiles="stitch"/><feColorMatrix type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 0.5 0"/></filter><rect width="100%" height="100%" filter="url(%23noiseFilter)"/></svg>');
+            background-color: transparent; /* Don't obscure player completely */
+            z-index: 9;
+            opacity: 0; /* Controlled separately */
+        }
+        .static.visible {
+             opacity: 0.4; /* Static visibility */
+        }
+
+        .color-bars {
+            /* Style for color bars effect */
+            z-index: 7;
+            background-color: transparent;
+        }
+        .color-bar {
+            flex-grow: 1; /* Each bar takes equal width */
+            height: 100%;
+        }
+        /* Muted color bar colors */
+        .color-bar-1 { background-color: #b0b0b0; } .color-bar-2 { background-color: #b0b050; }
+        .color-bar-3 { background-color: #50b0b0; } .color-bar-4 { background-color: #50b050; }
+        .color-bar-5 { background-color: #b050b0; } .color-bar-6 { background-color: #b05050; }
+        .color-bar-7 { background-color: #5050b0; }
+
+    </style>
+</head>
+<body>
+
+    <!-- Main TV Container -->
+    <div class="tv-container">
+        <!-- TV Body Structure -->
+        <div class="tv-body">
+
+            <!-- Screen Area (Left) -->
+            <div class="screen-area">
+                <div class="screen">
+                    <!-- YouTube Player Div -->
+                    <div id="player"></div>
+                    <!-- Overlays (Initially Hidden) -->
+                    <div class="screen-overlay color-bars" id="color-bars-overlay">
+                        <div class="color-bar color-bar-1"></div> <div class="color-bar color-bar-2"></div>
+                        <div class="color-bar color-bar-3"></div> <div class="color-bar color-bar-4"></div>
+                        <div class="color-bar color-bar-5"></div> <div class="color-bar color-bar-6"></div>
+                        <div class="color-bar color-bar-7"></div>
+                    </div>
+                    <div class="screen-overlay static" id="static-overlay"></div>
+                    <div class="screen-overlay loading" id="loading-overlay">LOADING...</div>
+                </div>
+            </div>
+
+            <!-- Controls Panel (Right) -->
+            <div class="controls-panel">
+                <!-- Top Knob (Channel Change) -->
+                <div class="control knob-1" id="channel-knob"></div>
+                <!-- Middle Knob (Mute Toggle) -->
+                <div class="control knob-2" id="mute-knob"></div>
+                <!-- Bottom Slider (Visual Only) -->
+                <div class="control slider">
+                    <div class="slider-line"></div>
+                    <div class="slider-line"></div>
+                </div>
+            </div>
+
+             <!-- TV Feet (Positioned below body) -->
+            <div class="tv-feet">
+                <div class="foot foot-left"></div>
+                <div class="foot foot-right"></div>
+            </div>
+
+        </div><!-- End tv-body -->
+    </div><!-- End tv-container -->
+
+    <!-- JavaScript Section -->
+    <script>
+        // --- Configuration ---
+        const videoIds = [ // Add your desired YouTube video IDs here
+            'dQw4w9WgXcQ', 'jNQXAC9IVRw', 'L_LUpnjgPso', '9bZkp7q19f0', 'kffacxfA7G4',
+            'pRpeEdMmmQ0', 'QH2-TGUlwu4', 'OPf0YbXqDm0', 'CevxZvSJLk8', 'YQHsXMglC9A',
+            'kJQP7kiw5Fk', 'fJ9rUzIMcZQ', '09R8_2nJtjg', 'aJOTlE1K90k', 'PT2_F-1esPk',
+            'J9jRXoYiPOs', 'oyEuk8j8imI', 'lWA2pjMjpBs', 'YykjpeuMNEk', 'papuvlVeZg8',
+            'SDTZ7iX4vTQ', 'KQ6zr6kCPj8', 'FTQbiNvZqaY', 'PeonBmeFR8o', 'YlUKcNNmywk',
+            'gJLIiF15wjQ', 'uelHwf8o7_U', 'VuNIsY6JdUw', 'XleNkRsUNlw', 'e-ORhEE9VVg',
+            'PWgvGjAhvIw', 'qrO4YZeyl0I', 'vNoKguSdy4Y', 'YBHQbu5rbdQ', 'fHI8X4OXluQ',
+            '0KSOMA3QBU0', 'izGwDsrQ1eQ', 'fLexgOxsZu0', 'qeMFqkcPYcg', 'Zi_XLOBDo_Y',
+            'U0CGsw6h60k', 'LatorN4P9aA', 'TUj0otkJEBo', '_Yhyp-_hX2s', 'SRcnnId15BA',
+            'SlPhMPnQ58k', 'NHozn0YXAeE', 'S_E2EHVxNAE', 'IRvGZffXhfk', 'iC9JDwCCimA',
+            'QNJL6nfu__Q', 'qeMFqkcPYcg', 'NMNgbISmF4I', 'JwYX52BP2Sk', 'sOnqjkJTMaA',
+            'M11SvDtPBhA', 'JGwWNGJdvx8', 'rYEDA3JcQqw', 'KlyXNRrsk4A', 'uO59tfQ2TbA',
+            'AJtDXIazrMo', 'UfcAVejslrU', 'XPpTgCho5ZA', 'iEPTlhBmwRg', 'tt2k8PGm-TI',
+            'V1bFr2SWP1I', 'zUzd9KyIDrM', 'pXRviuL6vMY', 'Io0fBr1XBUA', 'ivCY3Ec4iaU',
+            '6ZfuNTqbHE8', 'ZZ5LpwO-An4', 'oavMtUWDBTM', 'zSQ4t1iK58k', 'sPDROZAihhI', 'BROWqjuTM0g'
+        ];
+        const initialVolume = 70;     // Starting volume level (0-100)
+        const channelChangeDelay = 500; // Milliseconds delay during channel change effect
+        const effectDuration = 300;     // Milliseconds for effects like static/fade
+
+        // --- Global Variables ---
+        let player;                     // Holds the YouTube player instance
+        let usedVideoIds = new Set();   // Tracks played videos to avoid repeats
+        let isLoading = false;          // Flag to prevent multiple simultaneous loads
+        let isMuted = false;            // Tracks mute state
+        let currentVideoId = null;      // ID of the currently loaded/loading video
+
+        // --- DOM Element References ---
+        const channelKnob = document.getElementById('channel-knob');
+        const muteKnob = document.getElementById('mute-knob');
+        const staticOverlay = document.getElementById('static-overlay');
+        const colorBarsOverlay = document.getElementById('color-bars-overlay');
+        const loadingOverlay = document.getElementById('loading-overlay');
+
+        // --- YouTube IFrame Player API ---
+
+        /**
+         * Loads the YouTube IFrame Player API asynchronously.
+         */
+        function loadYouTubeAPI() {
+            console.log("Loading YouTube API...");
+            const tag = document.createElement('script');
+            tag.src = https://www.youtube.com/iframe_api";
+            document.body.appendChild(tag); // Append script to trigger API load
+        }
+
+        /**
+         * This function is called automatically by the YouTube API once it's loaded.
+         * It creates the YouTube player instance.
+         */
+        window.onYouTubeIframeAPIReady = function() {
+            console.log("YouTube API Ready. Initializing Player.");
+            showOverlay(loadingOverlay); // Show loading message
+            currentVideoId = getRandomVideoId(); // Get the first video ID
+
+            // Create the YT Player
+            player = new YT.Player('player', {
+                height: '100%', // Fill the .screen container
+                width: '100%',
+                videoId: currentVideoId, // Load the first video
+                playerVars: {
+                    'autoplay': 1,          // Start playing automatically
+                    'controls': 0,          // Hide default YouTube controls
+                    'showinfo': 0,          // Hide video title/uploader info
+                    'rel': 0,             // Don't show related videos at the end
+                    'iv_load_policy': 3,    // Hide annotations
+                    'modestbranding': 1,    // Use minimal YouTube logo
+                    'playsinline': 1        // Crucial for playback on mobile browsers
+                },
+                events: {
+                    'onReady': onPlayerReady,           // Callback when player is ready
+                    'onStateChange': onPlayerStateChange, // Callback when player state changes (playing, paused, ended, etc.)
+                    'onError': onPlayerError            // Callback for player errors
+                }
+            });
+        }
+
+        /**
+         * Called when the YouTube player is ready to receive commands.
+         * @param {object} event - The event object from the API.
+         */
+        function onPlayerReady(event) {
+            console.log("Player Ready. Video ID:", currentVideoId);
+            hideOverlay(loadingOverlay); // Hide loading message
+            event.target.setVolume(initialVolume); // Set initial volume
+            isMuted = false;
+            // Autoplay=1 handles starting the video
+        }
+
+        /**
+         * Called when the player's state changes (e.g., playing, ended).
+         * @param {object} event - The event object containing the new state.
+         */
+        function onPlayerStateChange(event) {
+            console.log("Player State Changed:", event.data);
+            const state = event.data;
+
+            if (state === YT.PlayerState.PLAYING) {
+                // When video actually starts playing, hide all overlays
+                hideOverlay(loadingOverlay);
+                hideOverlay(staticOverlay);
+                hideOverlay(colorBarsOverlay);
+                isLoading = false; // Loading is complete
+            } else if (state === YT.PlayerState.ENDED) {
+                // When video finishes, load the next random one
+                console.log("Video Ended - Loading next video.");
+                loadRandomVideo();
+            } else if (state === YT.PlayerState.BUFFERING) {
+                 // Show loading indicator during buffering if not already changing channels
+                 if (!isLoading) {
+                     showOverlay(loadingOverlay);
+                 }
+            }
+        }
+
+        /**
+         * Called if an error occurs in the player.
+         * @param {object} event - The event object containing error data.
+         */
+        function onPlayerError(event) {
+            console.error("Player Error:", event.data, "Video ID:", currentVideoId);
+            isLoading = false; // Reset loading flag
+            hideAllOverlays(); // Hide any active overlays
+
+            // Add the failed video ID to the used list so we don't immediately retry it
+            if (currentVideoId) {
+                usedVideoIds.add(currentVideoId);
+            }
+
+            // Attempt to load a *different* video
+            console.log("Attempting to load a different video after error...");
+            // Add a small delay before retry to avoid hammering API on persistent issues
+            setTimeout(loadRandomVideo, 500);
+        }
+
+        // --- Video Shuffling Logic ---
+
+        /**
+         * Selects a random video ID from the list, avoiding recently used ones.
+         * @returns {string} A randomly selected YouTube video ID.
+         */
+        function getRandomVideoId() {
+            // If we've used most available videos, clear the list (except the current one)
+            // This prevents getting stuck if all videos fail or are disliked quickly
+            if (videoIds.length > 1 && usedVideoIds.size >= videoIds.length - 1) {
+                console.log("Used video list nearly full. Resetting list.");
+                const currentlyPlaying = currentVideoId; // Keep track of the absolute current one
+                usedVideoIds.clear();
+                if (currentlyPlaying) {
+                    usedVideoIds.add(currentlyPlaying); // Prevent immediate repeat of the *very last* video
+                }
+            }
+
+            let randomVideoId;
+            let attempts = 0;
+            const maxAttempts = videoIds.length * 2; // Safety break for potential infinite loop
+
+            // Loop until an unused ID is found or max attempts reached
+            do {
+                randomVideoId = videoIds[Math.floor(Math.random() * videoIds.length)];
+                attempts++;
+                if (attempts > maxAttempts) {
+                    console.warn("Could not find an unused video ID after", maxAttempts, "attempts. Picking random.");
+                    // Fallback: just return any random ID if stuck
+                    break;
+                }
+            } while (usedVideoIds.has(randomVideoId) && videoIds.length > usedVideoIds.size); // Only loop if there are unused videos left
+
+            console.log(`Selected video: ${randomVideoId} (Attempts: ${attempts})`);
+            usedVideoIds.add(randomVideoId); // Mark this ID as used
+            currentVideoId = randomVideoId; // Update the global current ID tracker
+            return randomVideoId;
+        }
+
+        /**
+         * Initiates the process of loading a new random video with visual effects.
+         */
+        function loadRandomVideo() {
+            // Prevent loading if already loading or player isn't ready
+            if (isLoading || !player || typeof player.loadVideoById !== 'function') {
+                console.log("Load cancelled: Already loading or player not ready.");
+                return;
+            }
+
+            console.log("Loading new random video...");
+            isLoading = true; // Set loading flag
+
+            // --- Show Channel Change Effects ---
+            showOverlay(loadingOverlay);      // Show "LOADING..."
+            // showOverlay(colorBarsOverlay); // Optional: Show color bars
+            // Use setTimeout to show static slightly after loading text/color bars
+            setTimeout(() => showOverlay(staticOverlay), effectDuration / 3);
+
+            // --- Load the Video (after a delay for effects) ---
+            setTimeout(() => {
+                const nextVideoId = getRandomVideoId(); // Get the next ID
+                console.log("Calling loadVideoById with:", nextVideoId);
+                player.loadVideoById(nextVideoId); // Tell player to load the new video
+
+                // --- Start Hiding Effects ---
+                // Hide static/color bars shortly after loading command.
+                // Loading text will be hidden by onPlayerStateChange(PLAYING).
+                setTimeout(() => {
+                    hideOverlay(staticOverlay);
+                    // hideOverlay(colorBarsOverlay); // Hide if shown
+                }, effectDuration);
+
+            }, channelChangeDelay); // Wait before actually loading
+        }
+
+        // --- UI Overlay Control ---
+
+        /**
+         * Makes a screen overlay element visible.
+         * @param {HTMLElement} overlayElement - The overlay element to show.
+         */
+        function showOverlay(overlayElement) {
+            if (overlayElement) {
+                overlayElement.classList.add('visible');
+                // Special handling for static which uses direct opacity
+                if (overlayElement.id === 'static-overlay') {
+                    overlayElement.style.opacity = '0.4'; // Set desired static opacity
+                }
+            }
+        }
+
+        /**
+         * Makes a screen overlay element hidden.
+         * @param {HTMLElement} overlayElement - The overlay element to hide.
+         */
+        function hideOverlay(overlayElement) {
+            if (overlayElement) {
+                overlayElement.classList.remove('visible');
+                 // Special handling for static which uses direct opacity
+                if (overlayElement.id === 'static-overlay') {
+                     overlayElement.style.opacity = '0';
+                 }
+            }
+        }
+
+        /**
+         * Hides all screen overlays.
+         */
+        function hideAllOverlays() {
+            hideOverlay(loadingOverlay);
+            hideOverlay(staticOverlay);
+            hideOverlay(colorBarsOverlay);
+        }
+
+
+        // --- Event Listeners Setup ---
+
+        /**
+         * Adds event listeners when the DOM is fully loaded.
+         */
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log("DOM Loaded. Setting up event listeners.");
+
+            // Channel Knob Click: Load a new random video
+            channelKnob.addEventListener('click', () => {
+                console.log("Channel Knob Clicked.");
+                loadRandomVideo();
+            });
+
+            // Mute Knob Click: Toggle player mute state
+            muteKnob.addEventListener('click', () => {
+                console.log("Mute Knob Clicked.");
+                // Ensure player and mute functions exist
+                if (!player || typeof player.isMuted !== 'function' || typeof player.mute !== 'function' || typeof player.unMute !== 'function') {
+                    console.warn("Player not ready for mute toggle.");
+                    return;
+                }
+
+                // Toggle mute state
+                if (player.isMuted()) {
+                    player.unMute();
+                    isMuted = false;
+                    console.log("Player Unmuted.");
+                } else {
+                    player.mute();
+                    isMuted = true;
+                    console.log("Player Muted.");
+                }
+                // Optional: Add visual feedback to the mute knob itself (e.g., change color)
+                 muteKnob.style.filter = isMuted ? 'brightness(0.7)' : 'brightness(1)';
+            });
+
+            // Hide overlays initially on page load
+            hideAllOverlays();
+
+            // Start loading the YouTube API
+            loadYouTubeAPI();
+        });
+
+    </script>
+
+</body>
+</html>

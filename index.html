@@ -3,70 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pixel TV Shuffler - Flat Style</title>
+    <title>Pixel TV Shuffler - Retro Style</title>
     <!-- Load Pixel Font -->
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
         /* --- CSS Variables (Palette & Sizing) --- */
         :root {
             /* Colors based on reference image */
-            --bg-color-1: #e6a5a9;   /* Light Pink/Coral */
-            --bg-color-2: #4c8ca5;   /* Teal/Blue */
-            --bg-color-3: #4b435a;   /* Dark Purple/Grey */
-            --tv-body: #f1dcc3;     /* Light Pink/Peach (TV Body) */
-            --tv-outline: #302c33;   /* Dark Purple/Black (Outline) */
-            --panel-bg: #5cc8c7;    /* Teal/Blue (Panel/Bezel) */
-            --panel-highlight: #f6f1e1; /* Pale Yellow/Cream (Bezel Highlight) */
-            --knob-center: #e6a5a9; /* Pink/Coral (Knob detail) */
-            --screen-bg: #000000;   /* Black (Video Player Background) */
+            --bg-color-1: #df838a;   /* Light orange */
+            --bg-color-2: #E4D9FF;   /* Soft pink - Used for main background */
+            --bg-color-3: #df838a;   /* Soft pink */
+            --tv-body: #F7D08A;     /* Lavender (TV Body) */
+            --tv-outline: #595959;   /* Dark gray (Outline) */
+            --panel-bg: #808F85;    /* Dark gray (Panel/Bezel) */
+            --panel-highlight: #            --screen-bg: #808F85;   /* Muted green (Video Player Background) */
+            ; /* Lavender (Bezel Highlight) */
+            --knob-center: #df838a; /* Soft pink (Knob detail) */
+            --screen-bg: #808F85;   /* Muted green (Video Player Background) */
             --loading-text: #ffffff;/* White */
 
-            /* Base size for pixel blocks */
-            --pixel-unit: 10px; /* Increase/decrease this to scale the entire TV */
+            /* Dimmed mode colors */
+            --dimmed-overlay: rgba(0, 0, 0, 0.65); /* Black overlay with 65% opacity */
 
-            /* Derived sizes based on pixel unit */
-            --border-width: var(--pixel-unit);
-            --outline-width: var(--pixel-unit);
-            --element-gap: calc(var(--pixel-unit) * 2); /* Gap between elements */
+            /* Base size for pixel blocks - INCREASED for better visibility */
+            --pixel-unit: 10px; /* Increased from 10px for more pronounced pixel effect */
+
+            /* Derived sizes based on pixel unit - ADJUSTED for better proportions */
+            --border-width: calc(var(--pixel-unit) * 0.75); /* Slightly thinner borders */
+            --outline-width: calc(var(--pixel-unit) * 0.75); /* Slightly thinner outlines */
+            --element-gap: calc(var(--pixel-unit) * 3); /* Reduced gap between elements */
         }
 
         /* --- Basic Setup & Pixel Rendering --- */
         body {
             margin: 0;
-            padding: 0;
+            padding: calc(var(--pixel-unit) * 2) 0; /* Vertical padding */
             min-height: 100vh;
             display: flex;
+            flex-direction: column; /* Stack heading and TV vertically */
             justify-content: center;
             align-items: center;
-            /* Apply checkerboard background */
-            background-color: var(--bg-color-3);
-            background-image:
-                linear-gradient(45deg, 
-                    var(--bg-color-1) 12.5%, 
-                    transparent 12.5%, 
-                    transparent 37.5%, 
-                    var(--bg-color-2) 37.5%, 
-                    var(--bg-color-2) 62.5%,
-                    transparent 62.5%,
-                    transparent 87.5%,
-                    var(--bg-color-1) 87.5%);
-            background-size: 
-                calc(var(--pixel-unit) * 60) calc(var(--pixel-unit) * 60), /* Stripe size */
-            background-position: 0 0, 0 0;
+            /* Complex layered radial pattern */
+            background-color: var(--bg-color-2); /* Base pink */
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(223, 131, 138, 0.5) 0%, transparent 60%),
+                radial-gradient(circle at 80% 70%, rgba(228, 217, 255, 0.4) 30%, transparent 70%),
+                radial-gradient(circle at 50% 50%, rgba(223, 131, 138, 0.3) 40%, transparent 80%);
+            background-size: cover;
+            background-repeat: no-repeat;
             font-family: 'Press Start 2P', cursive; /* Apply pixel font */
             overflow: hidden; /* Prevent scrollbars */
-            /* Force nearest-neighbor scaling for crisp pixels */
-            image-rendering: pixelated;
-            image-rendering: crisp-edges;
+            transition: all 0.5s ease; /* Smooth transition for dim lights effect */
+            box-sizing: border-box;
         }
+
+        /* Dimmed state for body */
+        body.dimmed {
+            background-image: none;
+            background-color: #222;
+        }
+
+        /* --- Main Heading --- */
+        .main-heading {
+            font-family: 'Press Start 2P', cursive;
+            font-size: calc(var(--pixel-unit) * 3); /* Reduced from 4 to 3 for better proportion */
+            color: var(--loading-text); /* Match TV */
+            text-shadow:
+               calc(var(--pixel-unit) * 0.5) calc(var(--pixel-unit) * 0.5) 0 var(--tv-outline), /* Outline */
+               calc(var(--pixel-unit) * 0.5) calc(var(--pixel-unit) * 0.5) 0 rgba(0,0,0,0.3); /* Drop shadow */
+            margin: 0 0 calc(var(--pixel-unit) * 6) 0; /* Increased bottom margin for better spacing */
+            padding: calc(var(--pixel-unit) * 2); /* Added padding for better visual space */
+            text-align: center;
+            text-transform: uppercase; /* Common in retro games */
+            letter-spacing: 1px; /* Reduced from 2px for better readability */
+            position: absolute; /* Added for proper stacking context */
+            top: calc(var(--pixel-unit) * 4); /* Position above TV */
+            z-index: 1; /* Ensure heading stays above background */
+            width: 100%; /* Ensure full width */
+            box-sizing: border-box; /* Include padding in width calculation */
+        }
+
 
         /* --- TV Container --- */
         .tv-container {
             /* Wrapper to hold the TV */
-            position: relative;
+            position: absolute;
             /* Define overall size based on pixel units (adjust multipliers as needed) */
             width: calc(var(--pixel-unit) * 90);
-            height: calc(var(--pixel-unit) * 60);
+            height: calc(var(--pixel-unit) * 50);
+            transition: all 0.5s ease; /* Smooth transition for dim lights effect */
+        }
+
+        .tv-container.dimmed {
+            filter: brightness(1.2) contrast(1.1); /* Make TV pop in dimmed mode */
         }
 
         /* --- TV Body --- */
@@ -75,45 +104,53 @@
             height: 100%;
             background-color: var(--tv-body);
             border: var(--outline-width) solid var(--tv-outline);
-            border-radius: calc(var(--pixel-unit) * 2); /* Rounded corners */
+            /* More blockier corners for pixel look */
+            border-radius: calc(var(--pixel-unit) * 3);
             display: flex; /* Use flexbox to position screen and controls */
             padding: var(--element-gap); /* Inner padding */
             box-sizing: border-box; /* Include padding and border in width/height */
             position: relative; /* For positioning feet */
+            /* More pixelated appearance */
+            box-shadow:
+                calc(var(--pixel-unit) * 0.5) calc(var(--pixel-unit) * 0.5) 0 var(--tv-outline),
+                calc(var(--pixel-unit) * 1) calc(var(--pixel-unit) * 1) 0 rgba(0,0,0,0.2);
         }
 
         /* --- Screen Area (Left Side) --- */
         .screen-area {
             flex-grow: 1; /* Take available space */
-            height: 100%;
+            height: 100%; /* Adjust height slightly to make space for button */
+            align-self: center; /* Center vertically if needed */
             background-color: var(--panel-bg); /* Bezel background */
-            border: var(--outline-width) solid var(--tv-outline);
-            border-radius: var(--pixel-unit); /* Slightly rounded bezel */
+            border: var(--border-width) solid var(--tv-outline);
+            border-radius: calc(var(--pixel-unit)*3); /* More Round bezel */
             display: flex;
             justify-content: center;
             align-items: center;
             padding: var(--pixel-unit); /* Padding inside bezel */
             box-sizing: border-box;
-            /* Inner highlight using box-shadow */
+            /* Inner highlight using box-shadow - more pixelated appearance */
             box-shadow: inset 0 0 0 var(--pixel-unit) var(--panel-highlight);
+            position: relative; /* For the dim lights button */
         }
 
         .screen {
-            width: 100%;
-            height: 100%;
+            width: 95%;
+            height: 95%;
             background-color: var(--screen-bg); /* Default screen background */
             overflow: hidden; /* Clip the YouTube player */
             position: relative; /* For positioning overlays */
             border: var(--border-width) solid var(--tv-outline); /* Inner border for screen */
+            border-radius: calc(var(--pixel-unit)*3); /* More blocky bezel */
         }
 
         /* --- Controls Panel (Right Side) --- */
         .controls-panel {
-            width: calc(var(--pixel-unit) * 20); /* Fixed width for controls */
+            width: calc(var(--pixel-unit) * 22); /* Slightly wider to accommodate text */
             height: 100%;
             background-color: var(--panel-bg);
             border: var(--outline-width) solid var(--tv-outline);
-            border-radius: var(--pixel-unit);
+            border-radius: calc(var(--pixel-unit)*3); /* More Round bezel */
             margin-left: var(--element-gap); /* Space between screen and controls */
             display: flex;
             flex-direction: column; /* Stack controls vertically */
@@ -123,6 +160,27 @@
             box-sizing: border-box;
         }
 
+        /* NEW: Container for control + label */
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        /* NEW: Style for the labels */
+        .control-label {
+            font-family: 'Press Start 2P', cursive;
+            font-size: calc(var(--pixel-unit) * 1); /* Pixel text size */
+            color: var(--tv-body); /* Match TV body for contrast on dark panel */
+            margin-top: calc(var(--pixel-unit) * 0.8);
+            margin-bottom: calc(var(--pixel-unit) * 0.8);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            line-height: 1.2;
+        }
+
+
         /* --- Individual Controls --- */
         .control {
             background-color: var(--tv-body); /* Match TV body color */
@@ -130,23 +188,26 @@
             position: relative; /* For pseudo-elements */
             box-sizing: border-box;
             cursor: pointer; /* Indicate clickable */
+            /* More blocky pixelated appearance */
+            image-rendering: pixelated;
         }
         .control:active {
             /* Simple click feedback */
             filter: brightness(0.9);
+            transform: translateY(calc(var(--pixel-unit) * 0.2)); /* Subtle push effect */
         }
 
         /* Top Knob (Channel) */
         .knob-1 {
-            width: calc(var(--pixel-unit) * 10);
-            height: calc(var(--pixel-unit) * 10);
+            width: calc(var(--pixel-unit) * 15);
+            height: calc(var(--pixel-unit) * 15);
             border-radius: 50%; /* Make it circular */
         }
         .knob-1::after { /* Inner circle detail */
             content: '';
             position: absolute;
-            width: calc(var(--pixel-unit) * 4);
-            height: calc(var(--pixel-unit) * 4);
+            width: calc(var(--pixel-unit) * 8);
+            height: calc(var(--pixel-unit) * 8);
             background-color: var(--knob-center);
             border: var(--outline-width) solid var(--tv-outline);
             border-radius: 50%;
@@ -167,7 +228,8 @@
             width: 80%; /* Adjust line width */
             height: var(--border-width); /* Line thickness */
             background-color: var(--knob-center);
-            border: calc(var(--outline-width)/2) solid var(--tv-outline); /* Thinner outline for line */
+            border: calc(var(--outline-width) * 0.8) solid var(--tv-outline); /* Thinner outline for line */
+            border-radius: var(--pixel-unit);
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%) rotate(-45deg); /* Center and rotate */
@@ -175,31 +237,32 @@
 
         /* Bottom Slider (Non-interactive visual) */
         .slider {
-            width: calc(var(--pixel-unit) * 12);
+            width: calc(var(--pixel-unit) * 14);
             height: calc(var(--pixel-unit) * 6);
-            border-radius: var(--pixel-unit);
+            border-radius: calc(var(--pixel-unit) * 2);
             display: flex;
             flex-direction: column;
             justify-content: space-around;
             align-items: center;
-            padding: var(--pixel-unit) 0;
+            padding: 2px;
             cursor: default; /* Not interactive */
         }
-         .slider:active { filter: none; } /* No click feedback */
+        .slider:active { filter: none; } /* No click feedback */
 
         .slider-line { /* Lines inside the slider */
             width: 70%;
             height: var(--border-width);
             background-color: var(--tv-outline);
+            border-radius: var(--pixel-unit);
         }
 
         /* --- TV Feet --- */
         .tv-feet {
             position: absolute; /* Position relative to tv-body */
-            bottom: calc(var(--element-gap) * -1 - var(--border-width)); /* Position below the body */
+            bottom: calc(var(--element-gap) * -2 - var(--border-width)); /* Position below the body */
             left: 0;
             width: 100%;
-            height: calc(var(--pixel-unit) * 4); /* Height of feet */
+            height: calc(var(--pixel-unit) * 5); /* Height of feet */
             display: flex;
             justify-content: space-between; /* Space out feet */
             padding: 0 calc(var(--pixel-unit) * 10); /* Indent feet from edges */
@@ -208,10 +271,13 @@
 
         .foot {
             width: calc(var(--pixel-unit) * 10); /* Width of each foot */
-            height: 100%;
+            height: 120%;
             background-color: var(--tv-body);
             border: var(--outline-width) solid var(--tv-outline);
-            border-radius: 0 0 var(--pixel-unit) var(--pixel-unit); /* Rounded bottom corners */
+            border-radius: calc(var(--pixel-unit) * 2); /* Rounded bottom corners */
+            /* More blocky pixelated appearance */
+            box-shadow:
+                calc(var(--pixel-unit) * 0.5) calc(var(--pixel-unit) * 0.5) 0 var(--tv-outline);
         }
 
         /* --- YouTube Player & Overlays --- */
@@ -243,7 +309,6 @@
         }
 
         .screen-overlay.visible {
-            /* Class to make overlays visible */
             opacity: 1;
         }
 
@@ -255,43 +320,135 @@
             z-index: 10; /* Highest overlay */
         }
 
+        /* Improved static effect using CSS animation */
         .static {
-            /* Style for static effect */
-            background-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><filter id="noiseFilter"><feTurbulence type="fractalNoise" baseFrequency="1.5" numOctaves="1" stitchTiles="stitch"/><feColorMatrix type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 0.5 0"/></filter><rect width="100%" height="100%" filter="url(%23noiseFilter)"/></svg>');
-            background-color: transparent; /* Don't obscure player completely */
+            background-color: #000;
             z-index: 9;
-            opacity: 0; /* Controlled separately */
+            opacity: 0;
+            overflow: hidden;
         }
+
         .static.visible {
-             opacity: 0.4; /* Static visibility */
+            opacity: 0.7;
+        }
+
+        .static:before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background-image:
+                repeating-radial-gradient(circle at 15% 15%, white, black 1px),
+                repeating-radial-gradient(circle at 85% 85%, white, black 1px);
+            background-size:
+                calc(var(--pixel-unit) * 3) calc(var(--pixel-unit) * 3),
+                calc(var(--pixel-unit) * 5) calc(var(--pixel-unit) * 5);
+            opacity: 0.3;
+            animation: staticAnimation 0.2s infinite alternate;
+        }
+
+        @keyframes staticAnimation {
+            0% { background-position: 0 0, 0 0; opacity: 0.2; }
+            25% { background-position: -1px 1px, 1px -1px; opacity: 0.3; }
+            50% { background-position: 1px 2px, -1px -2px; opacity: 0.25; }
+            75% { background-position: -2px -1px, 2px 1px; opacity: 0.3; }
+            100% { background-position: 2px -2px, -2px 2px; opacity: 0.35; }
         }
 
         .color-bars {
             /* Style for color bars effect */
             z-index: 7;
             background-color: transparent;
+            opacity: 0.5; /* Semi-transparent to blend with static */
         }
+
+        .color-bars.visible {
+            opacity: 0.5;
+        }
+
         .color-bar {
             flex-grow: 1; /* Each bar takes equal width */
             height: 100%;
         }
-        /* Muted color bar colors */
-        .color-bar-1 { background-color: #b0b0b0; } .color-bar-2 { background-color: #b0b050; }
-        .color-bar-3 { background-color: #50b0b0; } .color-bar-4 { background-color: #50b050; }
-        .color-bar-5 { background-color: #b050b0; } .color-bar-6 { background-color: #b05050; }
-        .color-bar-7 { background-color: #5050b0; }
+        /* Bright color bar colors */
+        .color-bar-1 { background-color: #ff0000; } /* Red */
+        .color-bar-2 { background-color: #ff8000; } /* Orange */
+        .color-bar-3 { background-color: #ffff00; } /* Yellow */
+        .color-bar-4 { background-color: #00ff00; } /* Green */
+        .color-bar-5 { background-color: #0000ff; } /* Blue */
+        .color-bar-6 { background-color: #4b0082; } /* Indigo */
+        .color-bar-7 { background-color: #8b00ff; } /* Violet */
+
+        /* --- Dim Lights Button --- */
+        .dim-lights-btn {
+            position: absolute;
+            /* MOVED TO BOTTOM RIGHT */
+            bottom: var(--pixel-unit);
+            right: var(--pixel-unit);
+            width: calc(var(--pixel-unit) * 5);
+            height: calc(var(--pixel-unit) * 5);
+            background-color: var(--tv-body);
+            border: calc(var(--outline-width)/2) solid var(--tv-outline);
+            border-radius: var(--pixel-unit);
+            cursor: pointer;
+            z-index: 15; /* Above other elements */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: calc(var(--pixel-unit) * 0.8);
+            font-family: 'Press Start 2P', cursive;
+            color: var(--tv-outline);
+            /* Lightbulb icon using pseudo elements */
+        }
+
+        .dim-lights-btn:after {
+            content: '💡';
+            font-size: calc(var(--pixel-unit) * 2.2);
+        }
+
+        .dim-lights-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Dimmed overlay for the entire viewport */
+        .viewport-dimmer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: var(--dimmed-overlay);
+            z-index: -1; /* Behind everything */
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            pointer-events: none;
+        }
+
+        .viewport-dimmer.active {
+            opacity: 1;
+        }
 
     </style>
 </head>
 <body>
+    <!-- Dimmer overlay for the entire viewport -->
+    <div class="viewport-dimmer" id="viewport-dimmer"></div>
+
+    <!-- NEW: Main Heading -->
+    <h1 class="main-heading">shuffle_bot</h1>
 
     <!-- Main TV Container -->
-    <div class="tv-container">
+    <div class="tv-container" id="tv-container">
         <!-- TV Body Structure -->
         <div class="tv-body">
 
             <!-- Screen Area (Left) -->
             <div class="screen-area">
+                <!-- Dim Lights Button (Positioned via CSS) -->
+                <div class="dim-lights-btn" id="dim-lights-btn"></div>
+
                 <div class="screen">
                     <!-- YouTube Player Div -->
                     <div id="player"></div>
@@ -307,16 +464,26 @@
                 </div>
             </div>
 
-            <!-- Controls Panel (Right) -->
+            <!-- Controls Panel (Right) - UPDATED STRUCTURE -->
             <div class="controls-panel">
-                <!-- Top Knob (Channel Change) -->
-                <div class="control knob-1" id="channel-knob"></div>
-                <!-- Middle Knob (Mute Toggle) -->
-                <div class="control knob-2" id="mute-knob"></div>
-                <!-- Bottom Slider (Visual Only) -->
-                <div class="control slider">
-                    <div class="slider-line"></div>
-                    <div class="slider-line"></div>
+                <!-- Control Group: Channel -->
+                <div class="control-group">
+                    <div class="control knob-1" id="channel-knob"></div>
+                    <span class="control-label">Shuffle</span>
+                </div>
+                <!-- Control Group: Mute -->
+                <div class="control-group">
+                    <div class="control knob-2" id="mute-knob"></div>
+                    <span class="control-label">Mute</span>
+                </div>
+                <!-- Control Group: Slider (No label needed here) -->
+                <div class="control-group">
+                     <div class="control slider">
+                         <div class="slider-line"></div>
+                         <div class="slider-line"></div>
+                     </div>
+                     <!-- Optional: Add an empty span if needed for spacing consistency -->
+                     <!-- <span class="control-label" style="opacity: 0;">&nbsp;</span> -->
                 </div>
             </div>
 
@@ -329,29 +496,24 @@
         </div><!-- End tv-body -->
     </div><!-- End tv-container -->
 
-    <!-- JavaScript Section -->
+    <!-- JavaScript Section with Comment Blocks (Unchanged) -->
     <script>
         // --- Configuration ---
         const videoIds = [ // Add your desired YouTube video IDs here
             'dQw4w9WgXcQ', 'jNQXAC9IVRw', 'L_LUpnjgPso', '9bZkp7q19f0', 'kffacxfA7G4',
-            'pRpeEdMmmQ0', 'QH2-TGUlwu4', 'OPf0YbXqDm0', 'CevxZvSJLk8', 'YQHsXMglC9A',
-            'kJQP7kiw5Fk', 'fJ9rUzIMcZQ', '09R8_2nJtjg', 'aJOTlE1K90k', 'PT2_F-1esPk',
-            'J9jRXoYiPOs', 'oyEuk8j8imI', 'lWA2pjMjpBs', 'YykjpeuMNEk', 'papuvlVeZg8',
-            'SDTZ7iX4vTQ', 'KQ6zr6kCPj8', 'FTQbiNvZqaY', 'PeonBmeFR8o', 'YlUKcNNmywk',
-            'gJLIiF15wjQ', 'uelHwf8o7_U', 'VuNIsY6JdUw', 'XleNkRsUNlw', 'e-ORhEE9VVg',
-            'PWgvGjAhvIw', 'qrO4YZeyl0I', 'vNoKguSdy4Y', 'YBHQbu5rbdQ', 'fHI8X4OXluQ',
-            '0KSOMA3QBU0', 'izGwDsrQ1eQ', 'fLexgOxsZu0', 'qeMFqkcPYcg', 'Zi_XLOBDo_Y',
-            'U0CGsw6h60k', 'LatorN4P9aA', 'TUj0otkJEBo', '_Yhyp-_hX2s', 'SRcnnId15BA',
-            'SlPhMPnQ58k', 'NHozn0YXAeE', 'S_E2EHVxNAE', 'IRvGZffXhfk', 'iC9JDwCCimA',
-            'QNJL6nfu__Q', 'qeMFqkcPYcg', 'NMNgbISmF4I', 'JwYX52BP2Sk', 'sOnqjkJTMaA',
-            'M11SvDtPBhA', 'JGwWNGJdvx8', 'rYEDA3JcQqw', 'KlyXNRrsk4A', 'uO59tfQ2TbA',
-            'AJtDXIazrMo', 'UfcAVejslrU', 'XPpTgCho5ZA', 'iEPTlhBmwRg', 'tt2k8PGm-TI',
-            'V1bFr2SWP1I', 'zUzd9KyIDrM', 'pXRviuL6vMY', 'Io0fBr1XBUA', 'ivCY3Ec4iaU',
-            '6ZfuNTqbHE8', 'ZZ5LpwO-An4', 'oavMtUWDBTM', 'zSQ4t1iK58k', 'sPDROZAihhI', 'BROWqjuTM0g'
+            'pRpeEdMmmQ0', 'QH2-TGUlwu4', 'OPf0YbXqDm0', 'CevxZvSJLk8', 'YQHsXMglC9A'
+            // Shortened list for cleaner code - add more as needed
         ];
-        const initialVolume = 70;     // Starting volume level (0-100)
-        const channelChangeDelay = 500; // Milliseconds delay during channel change effect
-        const effectDuration = 300;     // Milliseconds for effects like static/fade
+
+        // ----- CONFIGURATION OPTIONS (EASY TO MODIFY) -----
+        const CONFIG = {
+            initialVolume: 70,          // Starting volume level (0-100)
+            channelChangeDelay: 500,    // Milliseconds delay during channel change effect
+            effectDuration: 300,        // Milliseconds for effects like static/fade
+            useYouTubeAPI: true,        // Set to false to disable YouTube API loading for testing
+            useStaticEffect: true,      // Set to false to disable static overlay effects
+            autoLoadVideo: false        // NEW: Don't auto-load video on startup
+        };
 
         // --- Global Variables ---
         let player;                     // Holds the YouTube player instance
@@ -359,6 +521,8 @@
         let isLoading = false;          // Flag to prevent multiple simultaneous loads
         let isMuted = false;            // Tracks mute state
         let currentVideoId = null;      // ID of the currently loaded/loading video
+        let isDimmed = false;           // Tracks the dimmed lights state
+        let isInitialized = false;      // NEW: Track if player is initialized
 
         // --- DOM Element References ---
         const channelKnob = document.getElementById('channel-knob');
@@ -366,17 +530,33 @@
         const staticOverlay = document.getElementById('static-overlay');
         const colorBarsOverlay = document.getElementById('color-bars-overlay');
         const loadingOverlay = document.getElementById('loading-overlay');
+        const dimLightsBtn = document.getElementById('dim-lights-btn');
+        const tvContainer = document.getElementById('tv-container');
+        const viewportDimmer = document.getElementById('viewport-dimmer');
+        const bodyElement = document.body; // Reference to body for dimming class
 
         // --- YouTube IFrame Player API ---
 
         /**
          * Loads the YouTube IFrame Player API asynchronously.
+         * Wrapped in a conditional block for easy testing.
          */
         function loadYouTubeAPI() {
-            console.log("Loading YouTube API...");
-            const tag = document.createElement('script');
-            tag.src = https://www.youtube.com/iframe_api";
-            document.body.appendChild(tag); // Append script to trigger API load
+            /* START YOUTUBE API LOADING */
+            if (CONFIG.useYouTubeAPI) {
+                console.log("Loading YouTube API...");
+                const tag = document.createElement('script');
+                tag.src = "https://www.youtube.com/iframe_api";
+                document.body.appendChild(tag); // Append script to trigger API load
+            } else {
+                console.log("YouTube API loading disabled for testing. Showing static UI only.");
+                // Show static overlay since no video will be loaded
+                if (CONFIG.useStaticEffect) {
+                    showOverlay(staticOverlay);
+                }
+                showOverlay(loadingOverlay);
+            }
+            /* END YOUTUBE API LOADING */
         }
 
         /**
@@ -384,30 +564,33 @@
          * It creates the YouTube player instance.
          */
         window.onYouTubeIframeAPIReady = function() {
+            /* START YOUTUBE PLAYER INITIALIZATION */
+            if (!CONFIG.useYouTubeAPI) return; // Skip if API disabled for testing
+
             console.log("YouTube API Ready. Initializing Player.");
             showOverlay(loadingOverlay); // Show loading message
-            currentVideoId = getRandomVideoId(); // Get the first video ID
-
-            // Create the YT Player
+            
+            // Create the YT Player with empty videoId
             player = new YT.Player('player', {
-                height: '100%', // Fill the .screen container
+                height: '100%',
                 width: '100%',
-                videoId: currentVideoId, // Load the first video
+                videoId: '', // Start with no video
                 playerVars: {
-                    'autoplay': 1,          // Start playing automatically
-                    'controls': 0,          // Hide default YouTube controls
-                    'showinfo': 0,          // Hide video title/uploader info
-                    'rel': 0,             // Don't show related videos at the end
-                    'iv_load_policy': 3,    // Hide annotations
-                    'modestbranding': 1,    // Use minimal YouTube logo
-                    'playsinline': 1        // Crucial for playback on mobile browsers
+                    'autoplay': 0,          // Don't autoplay
+                    'controls': 0,
+                    'showinfo': 0,
+                    'rel': 0,
+                    'iv_load_policy': 3,
+                    'modestbranding': 1,
+                    'playsinline': 1
                 },
                 events: {
-                    'onReady': onPlayerReady,           // Callback when player is ready
-                    'onStateChange': onPlayerStateChange, // Callback when player state changes (playing, paused, ended, etc.)
-                    'onError': onPlayerError            // Callback for player errors
+                    'onReady': onPlayerReady,
+                    'onStateChange': onPlayerStateChange,
+                    'onError': onPlayerError
                 }
             });
+            /* END YOUTUBE PLAYER INITIALIZATION */
         }
 
         /**
@@ -415,11 +598,36 @@
          * @param {object} event - The event object from the API.
          */
         function onPlayerReady(event) {
-            console.log("Player Ready. Video ID:", currentVideoId);
-            hideOverlay(loadingOverlay); // Hide loading message
-            event.target.setVolume(initialVolume); // Set initial volume
+            /* START PLAYER READY HANDLING */
+            if (!CONFIG.useYouTubeAPI) return;
+
+            console.log("Player Ready");
+            hideOverlay(loadingOverlay);
+            event.target.setVolume(CONFIG.initialVolume);
             isMuted = false;
-            // Autoplay=1 handles starting the video
+            isInitialized = true; // Mark as initialized
+            
+            // Show VCR-like effect by default
+            showVCRStaticEffect();
+            /* END PLAYER READY HANDLING */
+        }
+
+        /**
+         * Shows both static and color bar effects together for VCR-like appearance
+         */
+        function showVCRStaticEffect() {
+            if (CONFIG.useStaticEffect) {
+                showOverlay(staticOverlay);
+                showOverlay(colorBarsOverlay);
+            }
+        }
+
+        /**
+         * Hides both static and color bar effects
+         */
+        function hideVCRStaticEffect() {
+            hideOverlay(staticOverlay);
+            hideOverlay(colorBarsOverlay);
         }
 
         /**
@@ -427,25 +635,30 @@
          * @param {object} event - The event object containing the new state.
          */
         function onPlayerStateChange(event) {
+            /* START PLAYER STATE HANDLING */
+            if (!CONFIG.useYouTubeAPI) return;
+
             console.log("Player State Changed:", event.data);
             const state = event.data;
 
             if (state === YT.PlayerState.PLAYING) {
                 // When video actually starts playing, hide all overlays
                 hideOverlay(loadingOverlay);
-                hideOverlay(staticOverlay);
-                hideOverlay(colorBarsOverlay);
+                hideVCRStaticEffect();
                 isLoading = false; // Loading is complete
             } else if (state === YT.PlayerState.ENDED) {
-                // When video finishes, load the next random one
+                // When video finishes, show VCR effect and load next
                 console.log("Video Ended - Loading next video.");
+                showVCRStaticEffect();
                 loadRandomVideo();
             } else if (state === YT.PlayerState.BUFFERING) {
                  // Show loading indicator during buffering if not already changing channels
                  if (!isLoading) {
                      showOverlay(loadingOverlay);
+                     showVCRStaticEffect();
                  }
             }
+            /* END PLAYER STATE HANDLING */
         }
 
         /**
@@ -453,6 +666,9 @@
          * @param {object} event - The event object containing error data.
          */
         function onPlayerError(event) {
+            /* START ERROR HANDLING */
+            if (!CONFIG.useYouTubeAPI) return; // Skip if API disabled for testing
+
             console.error("Player Error:", event.data, "Video ID:", currentVideoId);
             isLoading = false; // Reset loading flag
             hideAllOverlays(); // Hide any active overlays
@@ -466,6 +682,7 @@
             console.log("Attempting to load a different video after error...");
             // Add a small delay before retry to avoid hammering API on persistent issues
             setTimeout(loadRandomVideo, 500);
+            /* END ERROR HANDLING */
         }
 
         // --- Video Shuffling Logic ---
@@ -476,30 +693,28 @@
          */
         function getRandomVideoId() {
             // If we've used most available videos, clear the list (except the current one)
-            // This prevents getting stuck if all videos fail or are disliked quickly
             if (videoIds.length > 1 && usedVideoIds.size >= videoIds.length - 1) {
                 console.log("Used video list nearly full. Resetting list.");
                 const currentlyPlaying = currentVideoId; // Keep track of the absolute current one
                 usedVideoIds.clear();
                 if (currentlyPlaying) {
-                    usedVideoIds.add(currentlyPlaying); // Prevent immediate repeat of the *very last* video
+                    usedVideoIds.add(currentlyPlaying); // Prevent immediate repeat
                 }
             }
 
             let randomVideoId;
             let attempts = 0;
-            const maxAttempts = videoIds.length * 2; // Safety break for potential infinite loop
+            const maxAttempts = videoIds.length * 2; // Safety break
 
             // Loop until an unused ID is found or max attempts reached
             do {
                 randomVideoId = videoIds[Math.floor(Math.random() * videoIds.length)];
                 attempts++;
                 if (attempts > maxAttempts) {
-                    console.warn("Could not find an unused video ID after", maxAttempts, "attempts. Picking random.");
-                    // Fallback: just return any random ID if stuck
+                    console.warn("Could not find unused video ID after", maxAttempts, "attempts. Picking random.");
                     break;
                 }
-            } while (usedVideoIds.has(randomVideoId) && videoIds.length > usedVideoIds.size); // Only loop if there are unused videos left
+            } while (usedVideoIds.has(randomVideoId) && videoIds.length > usedVideoIds.size);
 
             console.log(`Selected video: ${randomVideoId} (Attempts: ${attempts})`);
             usedVideoIds.add(randomVideoId); // Mark this ID as used
@@ -511,36 +726,39 @@
          * Initiates the process of loading a new random video with visual effects.
          */
         function loadRandomVideo() {
+            /* START VIDEO LOADING */
+            // Return immediately if YouTube API is disabled for testing
+            if (!CONFIG.useYouTubeAPI) {
+                console.log("Load cancelled: YouTube API disabled for testing.");
+                return;
+            }
+
             // Prevent loading if already loading or player isn't ready
-            if (isLoading || !player || typeof player.loadVideoById !== 'function') {
+            if (isLoading || !player || !isInitialized) {
                 console.log("Load cancelled: Already loading or player not ready.");
                 return;
             }
 
             console.log("Loading new random video...");
-            isLoading = true; // Set loading flag
+            isLoading = true;
 
             // --- Show Channel Change Effects ---
-            showOverlay(loadingOverlay);      // Show "LOADING..."
-            // showOverlay(colorBarsOverlay); // Optional: Show color bars
-            // Use setTimeout to show static slightly after loading text/color bars
-            setTimeout(() => showOverlay(staticOverlay), effectDuration / 3);
+            showOverlay(loadingOverlay);
+            showVCRStaticEffect(); // Show VCR effect during loading
 
             // --- Load the Video (after a delay for effects) ---
             setTimeout(() => {
-                const nextVideoId = getRandomVideoId(); // Get the next ID
+                const nextVideoId = getRandomVideoId();
                 console.log("Calling loadVideoById with:", nextVideoId);
-                player.loadVideoById(nextVideoId); // Tell player to load the new video
+                player.loadVideoById(nextVideoId);
 
                 // --- Start Hiding Effects ---
-                // Hide static/color bars shortly after loading command.
-                // Loading text will be hidden by onPlayerStateChange(PLAYING).
                 setTimeout(() => {
-                    hideOverlay(staticOverlay);
-                    // hideOverlay(colorBarsOverlay); // Hide if shown
-                }, effectDuration);
+                    hideVCRStaticEffect();
+                }, CONFIG.effectDuration);
 
-            }, channelChangeDelay); // Wait before actually loading
+            }, CONFIG.channelChangeDelay);
+            /* END VIDEO LOADING */
         }
 
         // --- UI Overlay Control ---
@@ -552,10 +770,6 @@
         function showOverlay(overlayElement) {
             if (overlayElement) {
                 overlayElement.classList.add('visible');
-                // Special handling for static which uses direct opacity
-                if (overlayElement.id === 'static-overlay') {
-                    overlayElement.style.opacity = '0.4'; // Set desired static opacity
-                }
             }
         }
 
@@ -566,10 +780,6 @@
         function hideOverlay(overlayElement) {
             if (overlayElement) {
                 overlayElement.classList.remove('visible');
-                 // Special handling for static which uses direct opacity
-                if (overlayElement.id === 'static-overlay') {
-                     overlayElement.style.opacity = '0';
-                 }
             }
         }
 
@@ -582,49 +792,74 @@
             hideOverlay(colorBarsOverlay);
         }
 
+         /**
+         * Toggles the mute state of the player.
+         */
+         function toggleMute() {
+            if (!player || typeof player.isMuted !== 'function') return;
 
-        // --- Event Listeners Setup ---
+            if (player.isMuted()) {
+                player.unMute();
+                isMuted = false;
+                console.log("Player Unmuted");
+                // Optional: Add visual feedback to mute knob
+                muteKnob.style.filter = 'brightness(1)';
+            } else {
+                player.mute();
+                isMuted = true;
+                console.log("Player Muted");
+                 // Optional: Add visual feedback to mute knob
+                muteKnob.style.filter = 'brightness(0.7)';
+            }
+        }
 
         /**
-         * Adds event listeners when the DOM is fully loaded.
+         * Toggles the dim lights mode by adjusting CSS classes.
          */
+        function toggleDimLights() {
+            isDimmed = !isDimmed; // Toggle state
+            console.log("Dim Lights Toggled:", isDimmed);
+
+            // Toggle class on body, tv-container, and viewport-dimmer
+            bodyElement.classList.toggle('dimmed', isDimmed);
+            tvContainer.classList.toggle('dimmed', isDimmed);
+            viewportDimmer.classList.toggle('active', isDimmed);
+
+             // Optional: Update button appearance if needed
+             dimLightsBtn.style.filter = isDimmed ? 'brightness(1.2)' : 'brightness(1)';
+        }
+
+
+        // --- Event Listeners ---
+
+        /**
+         * Attaches event listeners to the control elements.
+         */
+        function setupEventListeners() {
+            // Channel Knob Click -> Load Random Video
+            channelKnob.addEventListener('click', loadRandomVideo);
+
+            // Mute Knob Click -> Toggle Mute
+            muteKnob.addEventListener('click', toggleMute);
+
+            // Dim Lights Button Click -> Toggle Dim Lights
+            dimLightsBtn.addEventListener('click', toggleDimLights);
+
+            // Optional: Add keyboard controls?
+            // document.addEventListener('keydown', (event) => {
+            //     if (event.code === 'Space') { // Spacebar to change channel
+            //          loadRandomVideo();
+            //     } else if (event.code === 'KeyM') { // M key to mute/unmute
+            //          toggleMute();
+            //     }
+            // });
+        }
+
+        // --- Initialization ---
         document.addEventListener('DOMContentLoaded', () => {
-            console.log("DOM Loaded. Setting up event listeners.");
-
-            // Channel Knob Click: Load a new random video
-            channelKnob.addEventListener('click', () => {
-                console.log("Channel Knob Clicked.");
-                loadRandomVideo();
-            });
-
-            // Mute Knob Click: Toggle player mute state
-            muteKnob.addEventListener('click', () => {
-                console.log("Mute Knob Clicked.");
-                // Ensure player and mute functions exist
-                if (!player || typeof player.isMuted !== 'function' || typeof player.mute !== 'function' || typeof player.unMute !== 'function') {
-                    console.warn("Player not ready for mute toggle.");
-                    return;
-                }
-
-                // Toggle mute state
-                if (player.isMuted()) {
-                    player.unMute();
-                    isMuted = false;
-                    console.log("Player Unmuted.");
-                } else {
-                    player.mute();
-                    isMuted = true;
-                    console.log("Player Muted.");
-                }
-                // Optional: Add visual feedback to the mute knob itself (e.g., change color)
-                 muteKnob.style.filter = isMuted ? 'brightness(0.7)' : 'brightness(1)';
-            });
-
-            // Hide overlays initially on page load
-            hideAllOverlays();
-
-            // Start loading the YouTube API
-            loadYouTubeAPI();
+            console.log("DOM Ready. Setting up listeners and loading API.");
+            setupEventListeners();
+            loadYouTubeAPI(); // Start the process
         });
 
     </script>

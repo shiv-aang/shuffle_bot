@@ -4,3 +4,4 @@
 # change_log
 v1.0: First iteration, barebone structure and aesthetics.
 v1.1: Second iteration, added background animation, changed the palette, slider modified to a lights off button.
+v1.2: Third iteration, changing the backend logic and including OAuth 2.0.

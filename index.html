@@ -6,6 +6,8 @@
     <title>Pixel TV Shuffler - Retro Style</title>
     <!-- Load Pixel Font -->
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <!-- Google Identity Services Library -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
         /* --- CSS Variables (Palette & Sizing) --- */
         :root {
@@ -20,6 +22,9 @@
             --knob-center: #F9DC5C; /* Soft pink (Knob detail) */
             --screen-bg: #403F4C;   /* Muted green (Video Player Background) */
             --loading-text: #ffffff;/* White */
+            --button-text: #F9DC5C; /* Match knob center for consistency */
+            --button-disabled-bg: #a8323c; /* Darker red for disabled */
+            --button-disabled-text: #d3a8ae; /* Muted pink for disabled text */
 
             /* Dimmed mode colors */
             --dimmed-overlay: rgba(0, 0, 0, 0.65); /* Black overlay with 65% opacity */
@@ -33,7 +38,7 @@
             /* Derived sizes based on pixel unit */
             --border-width: calc(var(--pixel-unit) * 0.75);
             --outline-width: calc(var(--pixel-unit) * 0.75);
-            --element-gap: calc(var(--pixel-unit) * 3);
+            --element-gap: calc(var(--pixel-unit) * 3); /* Increased gap slightly for new button */
 
             /* Animated pattern properties */
             --a: 0deg;
@@ -82,7 +87,7 @@
             box-sizing: border-box;
             position: relative;
             --_g: #0000, var(--c1) 2deg calc(var(--a) - 2deg), #0000 var(--a);
-            background: 
+            background:
                 conic-gradient(from calc(-45deg  - var(--a)/2) at top    var(--p) left  var(--p), var(--_g)),
                 conic-gradient(from calc(-45deg  - var(--a)/2) at top    var(--p) left  var(--p), var(--_g)),
                 conic-gradient(from calc( 45deg  - var(--a)/2) at top    var(--p) right var(--p), var(--_g)),
@@ -134,44 +139,80 @@
         }
 
         /* Ensure content stays above pattern */
-        .tv-container, .main-heading {
+        .tv-container, .main-heading, .auth-controls { /* Added auth-controls */
             position: relative;
             z-index: 1;
+        }
+
+        /* --- Auth Controls (Sign In/Out) --- */
+        .auth-controls {
+            position: absolute;
+            top: calc(var(--pixel-unit) * 1); /* Position near the top */
+            right: calc(var(--pixel-unit) * 2);
+            z-index: 20; /* Ensure it's above TV */
+            display: flex;
+            gap: calc(var(--pixel-unit) * 1);
+        }
+
+        /* Style for the Sign Out button to match TV aesthetic */
+        #signout-button {
+            font-family: 'Press Start 2P', cursive;
+            font-size: calc(var(--pixel-unit) * 1.2);
+            padding: calc(var(--pixel-unit) * 0.8) calc(var(--pixel-unit) * 1.5);
+            background-color: var(--tv-body);
+            color: var(--button-text);
+            border: var(--outline-width) solid var(--tv-outline);
+            border-radius: var(--pixel-unit);
+            cursor: pointer;
+            text-transform: uppercase;
+            box-shadow: calc(var(--pixel-unit) * 0.4) calc(var(--pixel-unit) * 0.4) 0 var(--tv-outline);
+            transition: transform 0.1s ease, filter 0.1s ease;
+        }
+
+        #signout-button:hover {
+            filter: brightness(1.1);
+        }
+
+        #signout-button:active {
+            transform: translate(calc(var(--pixel-unit) * 0.2), calc(var(--pixel-unit) * 0.2));
+            box-shadow: calc(var(--pixel-unit) * 0.2) calc(var(--pixel-unit) * 0.2) 0 var(--tv-outline);
+            filter: brightness(0.9);
         }
 
         /* --- Main Heading --- */
         .main-heading {
             font-family: 'Press Start 2P', cursive;
-            font-size: calc(var(--pixel-unit) * 3); /* Reduced from 4 to 3 for better proportion */
-            color: var(--loading-text); /* Match TV */
+            font-size: calc(var(--pixel-unit) * 3);
+            color: var(--loading-text);
             text-shadow:
-               calc(var(--pixel-unit) * 0.5) calc(var(--pixel-unit) * 0.5) 0 var(--tv-outline), /* Outline */
-               calc(var(--pixel-unit) * 0.5) calc(var(--pixel-unit) * 0.5) 0 rgba(0,0,0,0.3); /* Drop shadow */
-            margin: 0 0 calc(var(--pixel-unit) * 6) 0; /* Increased bottom margin for better spacing */
-            padding: calc(var(--pixel-unit) * 2); /* Added padding for better visual space */
+               calc(var(--pixel-unit) * 0.5) calc(var(--pixel-unit) * 0.5) 0 var(--tv-outline),
+               calc(var(--pixel-unit) * 0.5) calc(var(--pixel-unit) * 0.5) 0 rgba(0,0,0,0.3);
+            margin: 0 0 calc(var(--pixel-unit) * 6) 0;
+            padding: calc(var(--pixel-unit) * 2);
             text-align: center;
-            text-transform: uppercase; /* Common in retro games */
-            letter-spacing: 1px; /* Reduced from 2px for better readability */
-            position: absolute; /* Added for proper stacking context */
-            top: calc(var(--pixel-unit) * 4); /* Position above TV */
-            z-index: 1; /* Ensure heading stays above background */
-            width: 100%; /* Ensure full width */
-            box-sizing: border-box; /* Include padding in width calculation */
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: absolute;
+             /* Adjust top positioning slightly to accommodate auth buttons */
+            top: calc(var(--pixel-unit) * 5);
+            z-index: 1;
+            width: 100%;
+            box-sizing: border-box;
         }
 
 
         /* --- TV Container --- */
         .tv-container {
-            /* Wrapper to hold the TV */
             position: absolute;
-            /* Define overall size based on pixel units (adjust multipliers as needed) */
             width: calc(var(--pixel-unit) * 90);
-            height: calc(var(--pixel-unit) * 55); /* Increased height for better spacing */
-            transition: all 0.5s ease; /* Smooth transition for dim lights effect */
+            height: calc(var(--pixel-unit) * 55);
+            transition: all 0.5s ease;
+            /* Added margin-top to push TV down slightly */
+            margin-top: calc(var(--pixel-unit) * 10);
         }
 
         .tv-container.dimmed {
-            filter: brightness(1.2) contrast(1.1); /* Make TV pop in dimmed mode */
+            filter: brightness(1.2) contrast(1.1);
         }
 
         /* --- TV Body --- */
@@ -180,13 +221,11 @@
             height: 100%;
             background-color: var(--tv-body);
             border: var(--outline-width) solid var(--tv-outline);
-            /* More blockier corners for pixel look */
             border-radius: calc(var(--pixel-unit) * 3);
-            display: flex; /* Use flexbox to position screen and controls */
-            padding: calc(var(--element-gap) * 1.5); /* Increased inner padding for more space */
-            box-sizing: border-box; /* Include padding and border in width/height */
-            position: relative; /* For positioning feet */
-            /* More pixelated appearance */
+            display: flex;
+            padding: calc(var(--element-gap) * 1.5);
+            box-sizing: border-box;
+            position: relative;
             box-shadow:
                 calc(var(--pixel-unit) * 0.8) calc(var(--pixel-unit) * 0.8) 0 var(--tv-outline),
                 calc(var(--pixel-unit) * 1.5) calc(var(--pixel-unit) * 1.5) 0 rgba(0,0,0,0.2);
@@ -194,62 +233,65 @@
 
         /* --- Screen Area (Left Side) --- */
         .screen-area {
-            flex-grow: 1; /* Take available space */
-            height: 100%; /* Adjust height slightly to make space for button */
-            align-self: center; /* Center vertically if needed */
-            background-color: var(--screen-bg); /* Bezel background */
+            flex-grow: 1;
+            height: 100%;
+            align-self: center;
+            background-color: var(--screen-bg);
             border: var(--border-width) solid var(--tv-outline);
-            border-radius: calc(var(--pixel-unit)*3); /* More Round bezel */
+            border-radius: calc(var(--pixel-unit)*3);
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: calc(var(--pixel-unit) * 1.5); /* Increased padding inside bezel */
+            padding: calc(var(--pixel-unit) * 1.5);
             box-sizing: border-box;
-            /* Inner highlight using box-shadow - more pixelated appearance */
             box-shadow: inset 0 0 0 var(--pixel-unit) var(--panel-highlight);
-            position: relative; /* For the dim lights button */
+            position: relative;
         }
 
         .screen {
             width: 98%;
             height: 98%;
-            background-color: var(--screen-bg); /* Default screen background */
-            overflow: hidden; /* Clip the YouTube player */
-            position: relative; /* For positioning overlays */
-            border-radius: calc(var(--pixel-unit)*3); /* More blocky bezel */
+            background-color: var(--screen-bg);
+            overflow: hidden;
+            position: relative;
+            border-radius: calc(var(--pixel-unit)*3);
         }
 
         /* --- Controls Panel (Right Side) --- */
         .controls-panel {
-            width: calc(var(--pixel-unit) * 22); /* Slightly wider to accommodate text */
+            width: calc(var(--pixel-unit) * 22);
             height: 100%;
             background-color: var(--panel-bg);
             border: var(--outline-width) solid var(--tv-outline);
-            border-radius: calc(var(--pixel-unit)*3); /* More Round bezel */
-            margin-left: var(--element-gap); /* Space between screen and controls */
+            border-radius: calc(var(--pixel-unit)*3);
+            margin-left: var(--element-gap);
             display: flex;
-            flex-direction: column; /* Stack controls vertically */
-            justify-content: space-around; /* Distribute space */
-            align-items: center; /* Center controls horizontally */
-            padding: calc(var(--element-gap) * 1.5) 0; /* Increased vertical padding */
+            flex-direction: column;
+            /* Adjust justification to make space for new button */
+            justify-content: space-between; /* Use space-between */
+            align-items: center;
+            /* Adjusted padding slightly */
+            padding: calc(var(--element-gap) * 1.2) 0;
             box-sizing: border-box;
         }
 
-        /* NEW: Container for control + label */
+        /* --- Container for control + label --- */
         .control-group {
             display: flex;
             flex-direction: column;
             align-items: center;
             text-align: center;
+            width: 100%; /* Ensure groups take full width for spacing */
         }
 
-        /* NEW: Style for the labels */
+        /* --- Style for the labels --- */
         .control-label {
             font-family: 'Press Start 2P', cursive;
-            font-size: calc(var(--pixel-unit) * 1); /* Pixel text size */
-            color: var(--knob-center); /* Match TV body for contrast on dark panel */
-            margin-top: calc(var(--pixel-unit) * 1.3); /* Increased top margin */
-            margin-bottom: calc(var(--pixel-unit) * 1.3); /* Increased bottom margin */
+            font-size: calc(var(--pixel-unit) * 1);
+            color: var(--knob-center);
+            /* Reduced margins slightly to fit 4 controls */
+            margin-top: calc(var(--pixel-unit) * 1.0);
+            margin-bottom: calc(var(--pixel-unit) * 1.0);
             text-transform: uppercase;
             letter-spacing: 1px;
             line-height: 1.2;
@@ -257,31 +299,32 @@
 
         /* --- Individual Controls --- */
         .control {
-            background-color: var(--tv-body); /* Match TV body color */
+            background-color: var(--tv-body);
             border: var(--outline-width) solid var(--tv-outline);
-            position: relative; /* For pseudo-elements */
+            position: relative;
             box-sizing: border-box;
-            cursor: pointer; /* Indicate clickable */
-            /* More blocky pixelated appearance */
+            cursor: pointer;
             image-rendering: pixelated;
+            display: flex; /* Added for centering text/icon in button */
+            justify-content: center; /* Center content horizontally */
+            align-items: center; /* Center content vertically */
         }
-        .control:active {
-            /* Simple click feedback */
+        .control:active:not(:disabled) { /* Disable active effect when disabled */
             filter: brightness(0.9);
-            transform: translateY(calc(var(--pixel-unit) * 0.2)); /* Subtle push effect */
+            transform: translateY(calc(var(--pixel-unit) * 0.2));
         }
 
         /* Top Knob (Channel) */
         .knob-1 {
-            width: calc(var(--pixel-unit) * 12);
-            height: calc(var(--pixel-unit) * 12);
-            border-radius: 50%; /* Make it circular */
+            width: calc(var(--pixel-unit) * 10); /* Reduced size slightly */
+            height: calc(var(--pixel-unit) * 10);
+            border-radius: 50%;
         }
-        .knob-1::after { /* Inner circle detail */
+        .knob-1::after {
             content: '';
             position: absolute;
-            width: calc(var(--pixel-unit) * 8);
-            height: calc(var(--pixel-unit) * 8);
+            width: calc(var(--pixel-unit) * 6); /* Reduced size slightly */
+            height: calc(var(--pixel-unit) * 6);
             background-color: var(--knob-center);
             border: var(--outline-width) solid var(--tv-outline);
             border-radius: 50%;
@@ -292,49 +335,74 @@
 
         /* Middle Knob (Mute/Volume) */
         .knob-2 {
-            width: calc(var(--pixel-unit) * 10);
-            height: calc(var(--pixel-unit) * 10);
+            width: calc(var(--pixel-unit) * 9); /* Reduced size slightly */
+            height: calc(var(--pixel-unit) * 9);
             border-radius: 50%;
         }
-        .knob-2::after, .knob-2::before { /* Diagonal line detail */
+        .knob-2::after, .knob-2::before {
             content: '';
             position: absolute;
-            width: 70%; /* Increased width for more pronounced X */
-            height: var(--border-width); /* Line thickness */
+            width: 70%;
+            height: var(--border-width);
             background-color: var(--knob-center);
-            border: calc(var(--outline-width) * 0.8) solid var(--tv-outline); /* Thinner outline to reduce overlap */
+            border: calc(var(--outline-width) * 0.8) solid var(--tv-outline);
             border-radius: var(--pixel-unit);
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%) rotate(-45deg); /* Center and rotate */
+            transform: translate(-50%, -50%) rotate(-45deg);
         }
         .knob-2::before {
-            transform: translate(-50%, -50%) rotate(45deg); /* Center and rotate in opposite direction */
-            z-index: 1; /* Ensure proper layering */
-            background-color: var(--knob-center); /* Match background to create unified X */
+            transform: translate(-50%, -50%) rotate(45deg);
+            z-index: 1;
+            background-color: var(--knob-center);
         }
 
-        /* Bottom Slider (Non-interactive visual) */
+        /* --- NEW Save Button --- */
+        #save-watch-later-button {
+            width: calc(var(--pixel-unit) * 9);
+            height: calc(var(--pixel-unit) * 9);
+            border-radius: var(--pixel-unit);
+            background-color: var(--tv-body);
+            border: var(--outline-width) solid var(--tv-outline);
+            color: var(--button-text);
+            font-family: 'Press Start 2P', cursive;
+            font-size: calc(var(--pixel-unit) * 1.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        #save-watch-later-button:disabled {
+            background-color: var(--button-disabled-bg);
+            color: var(--button-disabled-text);
+            cursor: not-allowed;
+            filter: grayscale(50%);
+        }
+
+
+        /* Bottom Slider (Dim Lights) */
         .slider {
-            width: calc(var(--pixel-unit) * 12); /* Adjusted width to fit inside controls panel */
-            height: calc(var(--pixel-unit) * 5); /* Adjusted height to fit inside controls panel */
+            width: calc(var(--pixel-unit) * 10); /* Reduced size slightly */
+            height: calc(var(--pixel-unit) * 5);
             border-radius: calc(var(--pixel-unit) * 2);
             display: flex;
             flex-direction: column;
             justify-content: space-around;
             align-items: center;
             padding: 2px;
-            cursor: pointer; /* Make it interactive */
+            cursor: pointer;
             transition: all 0.3s ease;
-            margin: 0 auto; /* Center the slider horizontally */
+            margin: 0 auto;
         }
-        
-        .slider:active { 
+
+        .slider:active {
             filter: brightness(0.9);
             transform: translateY(calc(var(--pixel-unit) * 0.2));
         }
 
-        .slider-line { 
+        .slider-line {
             width: 70%;
             height: var(--border-width);
             background-color: var(--tv-outline);
@@ -342,7 +410,6 @@
             transition: all 0.3s ease;
         }
 
-        /* Add style for dimmed state of slider */
         .slider.dimmed .slider-line {
             background-color: var(--tv-body);
         }
@@ -352,8 +419,8 @@
             font-family: 'Press Start 2P', cursive;
             font-size: calc(var(--pixel-unit) * 1);
             color: var(--knob-center);
-            margin-top: calc(var(--pixel-unit) * 1.3); /* Increased top margin */
-            margin-bottom: calc(var(--pixel-unit) * 1.3); /* Increased bottom margin */
+            margin-top: calc(var(--pixel-unit) * 1.0); /* Reduced margins slightly */
+            margin-bottom: calc(var(--pixel-unit) * 1.0);
             text-transform: uppercase;
             letter-spacing: 1px;
             line-height: 1.2;
@@ -366,24 +433,23 @@
 
         /* --- TV Feet --- */
         .tv-feet {
-            position: absolute; /* Position relative to tv-body */
-            bottom: calc(var(--element-gap) * -2 - var(--border-width)); /* Position below the body */
+            position: absolute;
+            bottom: calc(var(--element-gap) * -2 - var(--border-width));
             left: 0;
             width: 100%;
-            height: calc(var(--pixel-unit) * 4); /* Height of feet */
+            height: calc(var(--pixel-unit) * 4);
             display: flex;
-            justify-content: space-between; /* Space out feet */
-            padding: 0 calc(var(--pixel-unit) * 10); /* Indent feet from edges */
+            justify-content: space-between;
+            padding: 0 calc(var(--pixel-unit) * 10);
             box-sizing: border-box;
         }
 
         .foot {
-            width: calc(var(--pixel-unit) * 12); /* Width of each foot */
+            width: calc(var(--pixel-unit) * 12);
             height: 120%;
             background-color: var(--tv-body);
             border: var(--outline-width) solid var(--tv-outline);
-            border-radius: calc(var(--pixel-unit) * 2); /* Rounded bottom corners */
-            /* More blocky pixelated appearance */
+            border-radius: calc(var(--pixel-unit) * 2);
             box-shadow:
                 calc(var(--pixel-unit) * 0.8) calc(var(--pixel-unit) * 0.8) 0 var(--tv-outline),
                 calc(var(--pixel-unit) * 1.5) calc(var(--pixel-unit) * 1.5) 0 rgba(0,0,0,0.2);
@@ -391,30 +457,28 @@
 
         /* --- YouTube Player & Overlays --- */
         #player {
-            /* Player takes full space within the .screen div */
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: 5; /* Above screen background */
+            z-index: 5;
         }
 
         .screen-overlay {
-            /* Common style for overlays (loading, static, color bars) */
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: 8; /* Above player */
-            pointer-events: none; /* Allow clicks through to player if needed */
-            opacity: 0; /* Hidden by default */
-            transition: opacity 0.3s linear; /* Fade effect */
-            display: flex; /* Used by color bars and loading */
+            z-index: 8;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s linear;
+            display: flex;
             justify-content: center;
             align-items: center;
-            background-color: rgba(0, 0, 0, 0.5); /* Optional semi-transparent bg */
+            background-color: rgba(0, 0, 0, 0.5);
         }
 
         .screen-overlay.visible {
@@ -422,11 +486,12 @@
         }
 
         .loading {
-            /* Specific style for loading text */
             color: var(--loading-text);
-            font-size: calc(var(--pixel-unit) * 3);
+            font-size: calc(var(--pixel-unit) * 2.5); /* Slightly smaller */
             text-shadow: var(--pixel-unit) var(--pixel-unit) 0 var(--tv-outline);
-            z-index: 10; /* Highest overlay */
+            z-index: 10;
+            text-align: center; /* Allow multi-line */
+            padding: var(--pixel-unit);
         }
 
         /* Improved static effect using CSS animation */
@@ -467,10 +532,9 @@
         }
 
         .color-bars {
-            /* Style for color bars effect */
             z-index: 7;
             background-color: transparent;
-            opacity: 0.5; /* Semi-transparent to blend with static */
+            opacity: 0.5;
         }
 
         .color-bars.visible {
@@ -478,40 +542,25 @@
         }
 
         .color-bar {
-            flex-grow: 1; /* Each bar takes equal width */
+            flex-grow: 1;
             height: 100%;
         }
-        /* Bright color bar colors */
-        .color-bar-1 { background-color: #ff0000; } /* Red */
-        .color-bar-2 { background-color: #ff8000; } /* Orange */
-        .color-bar-3 { background-color: #ffff00; } /* Yellow */
-        .color-bar-4 { background-color: #00ff00; } /* Green */
-        .color-bar-5 { background-color: #0000ff; } /* Blue */
-        .color-bar-6 { background-color: #4b0082; } /* Indigo */
-        .color-bar-7 { background-color: #8b00ff; } /* Violet */
+        .color-bar-1 { background-color: #ff0000; } .color-bar-2 { background-color: #ff8000; }
+        .color-bar-3 { background-color: #ffff00; } .color-bar-4 { background-color: #00ff00; }
+        .color-bar-5 { background-color: #0000ff; } .color-bar-6 { background-color: #4b0082; }
+        .color-bar-7 { background-color: #8b00ff; }
 
-        /* --- Dim Lights Button --- */
-        .dim-lights-btn {
-            display: none; /* Hide the old dimming button */
-        }
+        /* --- Dim Lights Button (Hidden) --- */
+        .dim-lights-btn { display: none; }
 
-        /* Dimmed overlay for the entire viewport */
+        /* --- Viewport Dimmer --- */
         .viewport-dimmer {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background-color: var(--dimmed-overlay);
-            z-index: -1; /* Behind everything */
-            opacity: 0;
-            transition: opacity 0.5s ease;
-            pointer-events: none;
+            z-index: -1; opacity: 0;
+            transition: opacity 0.5s ease; pointer-events: none;
         }
-
-        .viewport-dimmer.active {
-            opacity: 1;
-        }
+        .viewport-dimmer.active { opacity: 1; }
 
     </style>
 </head>
@@ -519,7 +568,28 @@
     <!-- Dimmer overlay for the entire viewport -->
     <div class="viewport-dimmer" id="viewport-dimmer"></div>
 
-    <!-- NEW: Main Heading -->
+    <!-- Authentication Controls -->
+    <div class="auth-controls">
+        <!-- Container for Google Sign-In Button -->
+        <div id="g_id_onload"
+             data-client_id="YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com" <!-- <<< REPLACE THIS with your actual Google Client ID -->
+             data-callback="handleCredentialResponse"
+             data-auto_select="false">
+        </div>
+        <div class="g_id_signin"
+             data-type="standard"
+             data-size="large"
+             data-theme="outline" /* Changed theme for better visibility on potentially colorful background */
+             data-text="signin_with"
+             data-shape="rectangular"
+             data-logo_alignment="left">
+        </div>
+        <!-- Sign Out Button (Initially Hidden) -->
+        <button id="signout-button" style="display: none;">Sign Out</button>
+    </div>
+
+
+    <!-- Main Heading -->
     <h1 class="main-heading">shuffle_bot</h1>
 
     <!-- Main TV Container -->
@@ -529,13 +599,10 @@
 
             <!-- Screen Area (Left) -->
             <div class="screen-area">
-                <!-- Dim Lights Button (Positioned via CSS) -->
-                <div class="dim-lights-btn" id="dim-lights-btn"></div>
-
                 <div class="screen">
                     <!-- YouTube Player Div -->
                     <div id="player"></div>
-                    <!-- Overlays (Initially Hidden) -->
+                    <!-- Overlays -->
                     <div class="screen-overlay color-bars" id="color-bars-overlay">
                         <div class="color-bar color-bar-1"></div> <div class="color-bar color-bar-2"></div>
                         <div class="color-bar color-bar-3"></div> <div class="color-bar color-bar-4"></div>
@@ -551,17 +618,23 @@
             <div class="controls-panel">
                 <!-- Control Group: Channel -->
                 <div class="control-group">
-                    <div class="control knob-1" id="channel-knob"></div>
+                    <div class="control knob-1" id="channel-knob" title="Shuffle Video"></div>
                     <span class="control-label">Shuffle</span>
                 </div>
                 <!-- Control Group: Mute -->
                 <div class="control-group">
-                    <div class="control knob-2" id="mute-knob"></div>
+                    <div class="control knob-2" id="mute-knob" title="Toggle Mute"></div>
                     <span class="control-label">Mute</span>
+                </div>
+                <!-- Control Group: Save to Watch Later -->
+                <div class="control-group">
+                     <!-- Save Button (Initially hidden/disabled) -->
+                    <button id="save-watch-later-button" class="control" title="Save to Watch Later" style="display: none;" disabled>💾</button>
+                    <span class="control-label">Save</span>
                 </div>
                 <!-- Control Group: Dim Lights Slider -->
                 <div class="control-group">
-                    <div class="control slider" id="dim-slider">
+                    <div class="control slider" id="dim-slider" title="Toggle Dim Lights">
                         <div class="slider-line"></div>
                         <div class="slider-line"></div>
                     </div>
@@ -569,7 +642,7 @@
                 </div>
             </div>
 
-             <!-- TV Feet (Positioned below body) -->
+             <!-- TV Feet -->
             <div class="tv-feet">
                 <div class="foot foot-left"></div>
                 <div class="foot foot-right"></div>
@@ -578,52 +651,143 @@
         </div><!-- End tv-body -->
     </div><!-- End tv-container -->
 
-    <!-- JavaScript Section with Comment Blocks (Unchanged) -->
+    <!-- JavaScript Section -->
     <script>
         // --- Configuration ---
         let player;
-        let attemptCount = 0;
-        const MAX_ATTEMPTS = 5;
+        let apiAttemptCount = 0; // Renamed to avoid confusion with player errors
+        const MAX_API_ATTEMPTS = 5; // Max attempts to fetch from API
         const MIN_VIDEO_DURATION = 20;  // Minimum video duration in seconds
         const MAX_VIDEO_DURATION = 600; // Maximum video duration in seconds (10 minutes)
 
-        // ----- CONFIGURATION OPTIONS (EASY TO MODIFY) -----
+        // ----- CONFIGURATION OPTIONS -----
         const CONFIG = {
-            initialVolume: 70,          // Starting volume level (0-100)
-            channelChangeDelay: 500,    // Milliseconds delay during channel change effect
-            effectDuration: 300,        // Milliseconds for effects like static/fade
-            useYouTubeAPI: true,        // Set to false to disable YouTube API loading for testing
-            useStaticEffect: true,      // Set to false to disable static overlay effects
-            autoLoadVideo: false        // Don't auto-load video on startup
+            initialVolume: 70,
+            channelChangeDelay: 200,    // Shortened delay as API call takes time
+            effectDuration: 300,
+            useYouTubeAPI: true,
+            useStaticEffect: true,
+            // autoLoadVideo: false // No longer strictly needed, depends on sign-in state
+            googleClientId: 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com' // <<< REPLACE THIS with your actual Google Client ID
         };
 
         // --- Global Variables ---
-        let isLoading = false;          // Flag to prevent multiple simultaneous loads
-        let isMuted = false;            // Tracks mute state
-        let currentVideoId = null;      // ID of the currently loaded/loading video
-        let isDimmed = false;           // Tracks the dimmed lights state
-        let isInitialized = false;      // Track if player is initialized
+        let isLoading = false;
+        let isMuted = false;
+        let currentVideoId = null;
+        let isDimmed = false;
+        let isInitialized = false; // Player initialized
+        let googleUserAccessToken = null;
+        let tokenClient; // Google Identity Services Token Client
 
         // --- DOM Element References ---
         const channelKnob = document.getElementById('channel-knob');
         const muteKnob = document.getElementById('mute-knob');
+        const saveButton = document.getElementById('save-watch-later-button');
+        const dimSlider = document.getElementById('dim-slider');
         const staticOverlay = document.getElementById('static-overlay');
         const colorBarsOverlay = document.getElementById('color-bars-overlay');
         const loadingOverlay = document.getElementById('loading-overlay');
-        const dimSlider = document.getElementById('dim-slider');
         const lightsLabel = document.getElementById('lights-label');
         const tvContainer = document.getElementById('tv-container');
         const viewportDimmer = document.getElementById('viewport-dimmer');
         const bodyElement = document.body;
+        const signOutButton = document.getElementById('signout-button');
+        const signInButtonContainer = document.querySelector('.g_id_signin'); // Reference to hide/show
 
-        function generateRandomVideoId() {
-            const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
-            let result = '';
-            for (let i = 0; i < 11; i++) {
-                result += characters.charAt(Math.floor(Math.random() * characters.length));
-            }
-            return result;
+        // --- Google Identity Services Functions ---
+
+        function initializeGis() {
+            if (!CONFIG.googleClientId || CONFIG.googleClientId.startsWith('YOUR_GOOGLE_CLIENT_ID')) {
+                 console.error("Google Client ID not set in CONFIG. Please replace placeholder.");
+                 // Optionally display an error to the user
+                 showOverlay(loadingOverlay, "CONFIG ERROR:\nMissing Google Client ID");
+                 return;
+             }
+
+            tokenClient = google.accounts.oauth2.initTokenClient({
+                client_id: CONFIG.googleClientId,
+                scope: 'https://www.googleapis.com/auth/youtube.force-ssl', // Scope needed for Watch Later
+                callback: (tokenResponse) => { // Callback function for the token client
+                    if (tokenResponse && tokenResponse.access_token) {
+                        googleUserAccessToken = tokenResponse.access_token;
+                        console.log("Access Token obtained!");
+                        updateAuthUI(true); // Update UI to logged-in state
+                        // If player is ready, load the first video now that we are logged in
+                        if (isInitialized && !currentVideoId) {
+                            fetchAndLoadYouTubeVideo();
+                        }
+                    } else {
+                         console.error("Failed to get access token from response:", tokenResponse);
+                         handleSignOut(); // Ensure clean state if token fails
+                    }
+                },
+                 error_callback: (error) => {
+                    console.error('GSI Token Client Error:', error);
+                    // Handle errors like user closing the popup, denying permissions etc.
+                     googleUserAccessToken = null; // Ensure token is null on error
+                     updateAuthUI(false);
+                     showOverlay(loadingOverlay, "SIGN-IN FAILED\nOR CANCELLED");
+                     hideVCRStaticEffect();
+                 }
+            });
+             console.log("GIS Token Client Initialized.");
         }
+
+        // Called by Google Library after user selects account from the button
+        function handleCredentialResponse(response) {
+            console.log("Credential Response Received (JWT): ", response.credential);
+            // We don't use the JWT directly for API calls, but useful for basic info if needed
+            // Now request the OAuth 2.0 access token.
+            requestAccessToken();
+        }
+
+        function requestAccessToken() {
+             if (tokenClient) {
+                 // Prompt the user for authorization. '' tries to do it silently if possible.
+                 // 'consent' forces consent screen, 'select_account' forces account chooser.
+                 tokenClient.requestAccessToken({prompt: ''});
+             } else {
+                 console.error("Token Client not initialized before requesting token.");
+             }
+        }
+
+        function handleSignOut() {
+            if (googleUserAccessToken) {
+                google.accounts.oauth2.revoke(googleUserAccessToken, () => {
+                    console.log('Access token revoked.');
+                });
+            }
+            googleUserAccessToken = null;
+            google.accounts.id.disableAutoSelect(); // Don't auto sign-in next time
+            updateAuthUI(false); // Update UI to logged-out state
+            currentVideoId = null; // Clear current video
+            if(player && isInitialized) {
+                 player.stopVideo(); // Stop playback
+                 player.clearVideo();
+            }
+            showOverlay(loadingOverlay, "PLEASE SIGN IN\nTO SHUFFLE");
+            hideVCRStaticEffect();
+        }
+
+        function updateAuthUI(isSignedIn) {
+             if (isSignedIn) {
+                 signOutButton.style.display = 'block';
+                 signInButtonContainer.style.display = 'none'; // Hide Google's sign-in button
+                 // Enable shuffle knob if it was disabled
+                 channelKnob.disabled = false;
+                 // Save button state managed by player state change
+             } else {
+                 signOutButton.style.display = 'none';
+                 signInButtonContainer.style.display = 'block'; // Show Google's sign-in button
+                 saveButton.style.display = 'none'; // Hide save button
+                 saveButton.disabled = true;
+                 // Disable shuffle knob until signed in
+                 channelKnob.disabled = true; // Prevent shuffling when logged out
+             }
+        }
+
+        // --- YouTube Player & API Functions ---
 
         function loadYouTubeAPI() {
             if (CONFIG.useYouTubeAPI) {
@@ -632,52 +796,37 @@
                 tag.src = "https://www.youtube.com/iframe_api";
                 document.body.appendChild(tag);
             } else {
-                console.log("YouTube API loading disabled for testing. Showing static UI only.");
-                if (CONFIG.useStaticEffect) {
-                    showOverlay(staticOverlay);
-                }
-                showOverlay(loadingOverlay);
+                console.log("YouTube API loading disabled.");
+                showOverlay(loadingOverlay, "YT API DISABLED");
             }
         }
 
         function onYouTubeIframeAPIReady() {
             if (!CONFIG.useYouTubeAPI) return;
-
             console.log("YouTube API Ready. Initializing Player.");
-            showOverlay(loadingOverlay);
-            
+            // Don't show loading overlay yet, wait for sign-in or player ready
             player = new YT.Player('player', {
-                height: '100%',
-                width: '100%',
-                videoId: '', // Start with no video
-                playerVars: {
-                    'autoplay': 0,
-                    'controls': 0,
-                    'showinfo': 0,
-                    'rel': 0,
-                    'iv_load_policy': 3,
-                    'modestbranding': 1,
-                    'playsinline': 1
-                },
-                events: {
-                    'onReady': onPlayerReady,
-                    'onStateChange': onPlayerStateChange,
-                    'onError': onPlayerError
-                }
+                height: '100%', width: '100%', videoId: '',
+                playerVars: { 'autoplay': 0, 'controls': 0, 'showinfo': 0, 'rel': 0, 'iv_load_policy': 3, 'modestbranding': 1, 'playsinline': 1 },
+                events: { 'onReady': onPlayerReady, 'onStateChange': onPlayerStateChange, 'onError': onPlayerError }
             });
         }
 
         function onPlayerReady(event) {
             if (!CONFIG.useYouTubeAPI) return;
-
             console.log("Player Ready");
-            hideOverlay(loadingOverlay);
+            isInitialized = true;
             event.target.setVolume(CONFIG.initialVolume);
             isMuted = false;
-            isInitialized = true;
-            
-            showVCRStaticEffect();
-            loadRandomVideo(); // Load first random video
+
+            // Player is ready, but don't load video yet. Wait for sign-in.
+            if (!googleUserAccessToken) {
+                 showOverlay(loadingOverlay, "PLEASE SIGN IN");
+                 updateAuthUI(false); // Ensure UI reflects logged-out state
+            } else {
+                // If already signed in when player becomes ready, load first video
+                 fetchAndLoadYouTubeVideo();
+            }
         }
 
         function showVCRStaticEffect() {
@@ -693,91 +842,304 @@
         }
 
         function onPlayerStateChange(event) {
-            if (!CONFIG.useYouTubeAPI) return;
-
-            console.log("Player State Changed:", event.data);
+            if (!CONFIG.useYouTubeAPI || !player) return;
             const state = event.data;
+            console.log("Player State Changed:", state);
 
             if (state === YT.PlayerState.PLAYING) {
                 hideOverlay(loadingOverlay);
                 hideVCRStaticEffect();
                 isLoading = false;
-                attemptCount = 0; // Reset attempt counter on successful play
+                apiAttemptCount = 0; // Reset API attempt counter on successful play
 
-                // Check video duration
-                const duration = player.getDuration();
-                if (duration < MIN_VIDEO_DURATION || duration > MAX_VIDEO_DURATION) {
-                    console.log('Video duration outside acceptable range:', duration);
-                    loadRandomVideo();
-                    return;
-                }
+                 // Enable save button only if logged in and video is valid
+                 if (googleUserAccessToken) {
+                     const duration = player.getDuration();
+                     if (duration >= MIN_VIDEO_DURATION && duration <= MAX_VIDEO_DURATION) {
+                         saveButton.style.display = 'flex'; // Use flex to center icon
+                         saveButton.disabled = false;
+                         saveButton.textContent = '💾'; // Reset icon
+                     } else {
+                         console.log('Video duration outside acceptable range:', duration);
+                          saveButton.style.display = 'none'; // Hide if duration invalid
+                          saveButton.disabled = true;
+                         fetchAndLoadYouTubeVideo(); // Load a new one immediately
+                         return;
+                     }
+                 } else {
+                      saveButton.style.display = 'none';
+                      saveButton.disabled = true;
+                 }
+
             } else if (state === YT.PlayerState.ENDED) {
                 console.log("Video Ended - Loading next video.");
-                showVCRStaticEffect();
-                loadRandomVideo();
-            } else if (state === YT.PlayerState.BUFFERING) {
-                if (!isLoading) {
-                    showOverlay(loadingOverlay);
-                    showVCRStaticEffect();
-                }
+                saveButton.style.display = 'none'; // Hide save button
+                saveButton.disabled = true;
+                fetchAndLoadYouTubeVideo(); // Auto-shuffle next video
+            } else if (state === YT.PlayerState.BUFFERING || state === YT.PlayerState.UNSTARTED || state === YT.PlayerState.CUED) {
+                 if (!isLoading) { // Show loading only if we aren't already in a loading state
+                     showOverlay(loadingOverlay, "BUFFERING...");
+                     showVCRStaticEffect();
+                 }
+                 saveButton.style.display = 'none'; // Hide save button while not playing
+                 saveButton.disabled = true;
+            } else {
+                 // Handle other states like PAUSED if needed
+                 // Hide save button if paused? Optional.
+                 // saveButton.style.display = 'none';
+                 // saveButton.disabled = true;
             }
         }
 
         function onPlayerError(event) {
             if (!CONFIG.useYouTubeAPI) return;
-
             console.error("Player Error:", event.data, "Video ID:", currentVideoId);
-            
-            if (attemptCount >= MAX_ATTEMPTS) {
-                console.log('Max attempts reached, waiting longer before next try');
-                attemptCount = 0;
-                setTimeout(loadRandomVideo, 5000);
-                return;
-            }
+             saveButton.style.display = 'none'; // Hide save button on error
+             saveButton.disabled = true;
+             isLoading = false; // Allow fetching new video
 
-            // Handle different error types
-            if (event.data === 2 || event.data === 150 || // Invalid ID or private video
-                event.data === 101 || event.data === 100) { // Embed not allowed
-                setTimeout(loadRandomVideo, 1000);
-            } else {
-                setTimeout(loadRandomVideo, 1000);
-            }
+             // Errors 2, 100, 101, 150 usually mean the video is bad (invalid, private, not embeddable)
+             // Try fetching a new video immediately in these cases.
+             if (event.data === 2 || event.data === 100 || event.data === 101 || event.data === 150) {
+                 console.log("Player error indicates bad video, fetching new one.");
+                 setTimeout(fetchAndLoadYouTubeVideo, 500); // Short delay before retry
+             } else {
+                 // For other errors, maybe wait a bit longer
+                  console.log("Unexpected player error, retrying after longer delay.");
+                 setTimeout(fetchAndLoadYouTubeVideo, 2000);
+             }
         }
 
-        function loadRandomVideo() {
-            if (!CONFIG.useYouTubeAPI || !player || !isInitialized) {
-                console.log("Load cancelled: YouTube API disabled or player not ready.");
-                return;
-            }
+        // --- Core Logic: Fetching and Loading Video ---
 
-            if (isLoading) {
-                console.log("Load cancelled: Already loading.");
-                return;
-            }
+        async function fetchAndLoadYouTubeVideo() {
+             if (!CONFIG.useYouTubeAPI || !isInitialized) {
+                 console.log("Load cancelled: YouTube API disabled or player not ready.");
+                 return;
+             }
+             if (!googleUserAccessToken) {
+                 console.warn("Cannot fetch video: User not signed in.");
+                 showOverlay(loadingOverlay, "PLEASE SIGN IN\nTO SHUFFLE");
+                 hideVCRStaticEffect();
+                 isLoading = false;
+                 return;
+             }
+             if (isLoading) {
+                 console.log("Load cancelled: Already loading/fetching.");
+                 return;
+             }
 
-            console.log("Loading new random video...");
-            isLoading = true;
-            attemptCount++;
+             console.log("Fetching new random video via API (User Authenticated)...");
+             isLoading = true;
+             apiAttemptCount++; // Increment API attempt counter
 
-            showOverlay(loadingOverlay);
-            showVCRStaticEffect();
+             showOverlay(loadingOverlay, "SEARCHING..."); // Update loading text
+             showVCRStaticEffect();
+             saveButton.style.display = 'none'; // Hide save button during load
+             saveButton.disabled = true;
 
-            setTimeout(() => {
-                const videoId = generateRandomVideoId();
-                currentVideoId = videoId;
-                console.log("Loading video ID:", videoId);
-                player.loadVideoById(videoId);
+             const videoId = await fetchRandomYouTubeVideoIdAuthenticated();
 
-                setTimeout(() => {
-                    if (!isLoading) { // Only hide effects if we haven't started loading another video
-                        hideVCRStaticEffect();
-                    }
-                }, CONFIG.effectDuration);
-            }, CONFIG.channelChangeDelay);
+             if (videoId && player) {
+                 currentVideoId = videoId;
+                 console.log("Loading video ID:", videoId);
+                 // Use the channel change delay before actually loading into player
+                 setTimeout(() => {
+                     if (player && typeof player.loadVideoById === 'function') {
+                         player.loadVideoById(videoId);
+                         // Effects hiding and button enabling are handled by onPlayerStateChange
+                     } else {
+                          console.error("Player not available to load video.");
+                          isLoading = false; // Reset state
+                     }
+                 }, CONFIG.channelChangeDelay);
+             } else {
+                 console.error("Failed to get a video ID using user token.");
+                 isLoading = false; // Allow retry
+                 hideOverlay(loadingOverlay);
+                 hideVCRStaticEffect();
+                 // Handle failure - check attempt count
+                 if (apiAttemptCount < MAX_API_ATTEMPTS) {
+                     console.log(`Retrying API fetch (${apiAttemptCount}/${MAX_API_ATTEMPTS})`);
+                     setTimeout(fetchAndLoadYouTubeVideo, 1500); // Retry after delay
+                 } else {
+                     console.error("Max API fetch attempts reached.");
+                     showOverlay(loadingOverlay, "ERROR FINDING VIDEO\nPLEASE TRY AGAIN LATER");
+                     apiAttemptCount = 0; // Reset counter after max failure
+                 }
+             }
+         }
+
+         async function fetchRandomYouTubeVideoIdAuthenticated() {
+              if (!googleUserAccessToken) return null;
+
+             const randomQuery = generateRandomSearchTerm();
+             const maxResults = 20; // Fetch a bit more results for better random chance
+             // YouTube API V3 Search Endpoint
+             const url = `https://www.googleapis.com/youtube/v3/search` +
+                       `?part=snippet` +
+                       `&q=${encodeURIComponent(randomQuery)}` +
+                       `&type=video` +
+                       `&videoEmbeddable=true` +
+                       `&maxResults=${maxResults}` +
+                       // Filter by duration (less precise than player check, but helps)
+                       // Options: 'any', 'long', 'medium', 'short'
+                       `&videoDuration=medium` +
+                       // Request only the fields we need to reduce data transfer
+                       `&fields=items(id(videoId))`;
+
+
+             try {
+                 const response = await fetch(url, {
+                     method: 'GET',
+                     headers: {
+                         'Authorization': `Bearer ${googleUserAccessToken}`,
+                         'Accept': 'application/json'
+                     }
+                 });
+
+                 if (response.status === 401 || response.status === 403) {
+                      console.error("Authorization error (token might be expired or invalid). Signing out.");
+                      handleSignOut(); // Force sign out on auth error
+                      showOverlay(loadingOverlay, "AUTH ERROR\nPLEASE SIGN IN AGAIN");
+                      return null;
+                  }
+
+                 if (!response.ok) {
+                     const errorData = await response.json().catch(() => ({})); // Try to parse error, default to empty obj
+                     console.error("YouTube API Error (Authenticated Search):", response.status, errorData);
+                     throw new Error(`YouTube API Search Error: ${errorData.error?.message || response.statusText}`);
+                 }
+                 const data = await response.json();
+
+                 if (data.items && data.items.length > 0) {
+                     // Filter results further if needed (e.g., remove channels if accidentally included)
+                     const validItems = data.items.filter(item => item.id && item.id.videoId);
+                     if (validItems.length > 0) {
+                          const randomIndex = Math.floor(Math.random() * validItems.length);
+                          const videoId = validItems[randomIndex].id.videoId;
+                          console.log("Found video via Authenticated API:", videoId, "for query:", randomQuery);
+                          return videoId;
+                     } else {
+                          console.warn("API search yielded results, but no valid video IDs found for:", randomQuery);
+                          return null;
+                     }
+                 } else {
+                     console.warn("Authenticated API search yielded no results for:", randomQuery);
+                     return null;
+                 }
+             } catch (error) {
+                 console.error("Error fetching authenticated from YouTube API:", error);
+                 return null;
+             }
+         }
+
+         async function saveCurrentVideoToWatchLater() {
+             if (!googleUserAccessToken) {
+                 console.warn("Cannot save: User not signed in.");
+                 // Optionally show a quick message
+                 return;
+             }
+             if (!currentVideoId || !player || player.getPlayerState() !== YT.PlayerState.PLAYING) {
+                 console.warn("Cannot save: No valid video playing.");
+                 return;
+             }
+
+             console.log(`Attempting to save video ${currentVideoId} to Watch Later...`);
+             saveButton.disabled = true;
+             saveButton.textContent = '💾..'; // Indicate loading state on button
+
+             const url = 'https://www.googleapis.com/youtube/v3/playlistItems?part=snippet';
+             const requestBody = {
+                 snippet: {
+                     playlistId: 'WL', // Special ID for "Watch Later"
+                     resourceId: {
+                         kind: 'youtube#video',
+                         videoId: currentVideoId
+                     }
+                 }
+             };
+
+             try {
+                 const response = await fetch(url, {
+                     method: 'POST',
+                     headers: {
+                         'Authorization': `Bearer ${googleUserAccessToken}`,
+                         'Accept': 'application/json',
+                         'Content-Type': 'application/json'
+                     },
+                     body: JSON.stringify(requestBody)
+                 });
+
+                 const responseData = await response.json().catch(() => ({})); // Try parsing JSON, default empty
+
+                 if (response.status === 401 || response.status === 403) {
+                     console.error("Authorization error saving. Signing out.");
+                     handleSignOut();
+                     showOverlay(loadingOverlay, "AUTH ERROR\nPLEASE SIGN IN AGAIN");
+                     saveButton.textContent = '💾'; // Reset icon
+                     return; // Exit function
+                 }
+
+                 if (!response.ok) {
+                      console.error("Error saving to Watch Later:", response.status, responseData);
+                      let errorMsg = responseData.error?.message || response.statusText;
+                      // Handle specific case: Video already in playlist
+                      if (responseData.error?.errors?.[0]?.reason === 'playlistItemDuplicatesNotAllowed') {
+                           errorMsg = "Already in Watch Later";
+                           saveButton.textContent = '✅'; // Show as success even if duplicate
+                           setTimeout(() => { if (!saveButton.disabled) saveButton.textContent = '💾'; }, 1500);
+                      } else {
+                           showOverlay(loadingOverlay, `SAVE FAILED:\n${errorMsg}`); // Show error on screen
+                           setTimeout(hideOverlay, 2500, loadingOverlay); // Hide error after delay
+                           saveButton.textContent = '❌'; // Show error icon
+                           setTimeout(() => { if (!saveButton.disabled) saveButton.textContent = '💾'; }, 1500);
+                      }
+                 } else {
+                     console.log(`Video ${currentVideoId} successfully added/found in Watch Later.`);
+                     saveButton.textContent = '✅'; // Show success icon
+                      setTimeout(() => { if (!saveButton.disabled) saveButton.textContent = '💾'; }, 1500); // Reset after delay
+                 }
+
+             } catch (error) {
+                 console.error("Network or other error saving to Watch Later:", error);
+                  showOverlay(loadingOverlay, "SAVE FAILED:\nNetwork Error");
+                  setTimeout(hideOverlay, 2500, loadingOverlay);
+                  saveButton.textContent = '❌';
+                  setTimeout(() => { if (!saveButton.disabled) saveButton.textContent = '💾'; }, 1500);
+             } finally {
+                 // Re-enable button unless an auth error occurred (handled by handleSignOut)
+                 if (googleUserAccessToken) {
+                      saveButton.disabled = false;
+                 }
+             }
+         }
+
+
+        // --- Helper Functions ---
+
+        function generateRandomSearchTerm() {
+             // Expanded list for more variety
+            const words = [
+                "8-bit music", "pixel art tutorial", "retro gaming", "synthwave mix", "lofi hip hop radio",
+                "funny cat compilation", "dog zoomies", "fail compilation", "gameplay highlights", "speedrun",
+                "science explained", "space documentary", "nature relaxation", "ambient music", "live music performance",
+                "acoustic cover", "comedy sketch", "short film animation", "stop motion", "vlog daily",
+                "tech review", "unboxing", "cooking recipe", "baking tutorial", "woodworking project", "asmr",
+                "city ambience", "rain sounds", "ocean waves", "meditation music", "yoga class", "workout routine"
+            ];
+            return words[Math.floor(Math.random() * words.length)];
         }
 
-        function showOverlay(overlayElement) {
+        function showOverlay(overlayElement, text = null) {
             if (overlayElement) {
+                // Update text only for the loading overlay
+                if (text && overlayElement === loadingOverlay) {
+                    // Use innerHTML to render line breaks from \n
+                    loadingOverlay.innerHTML = text.replace(/\n/g, '<br>');
+                } else if (overlayElement === loadingOverlay && !text) {
+                     loadingOverlay.textContent = "LOADING..."; // Default
+                }
                 overlayElement.classList.add('visible');
             }
         }
@@ -785,18 +1147,15 @@
         function hideOverlay(overlayElement) {
             if (overlayElement) {
                 overlayElement.classList.remove('visible');
+                // Reset loading text when hiding
+                if (overlayElement === loadingOverlay) {
+                     loadingOverlay.textContent = "LOADING...";
+                }
             }
         }
 
-        function hideAllOverlays() {
-            hideOverlay(loadingOverlay);
-            hideOverlay(staticOverlay);
-            hideOverlay(colorBarsOverlay);
-        }
-
         function toggleMute() {
-            if (!player || typeof player.isMuted !== 'function') return;
-
+            if (!player || typeof player.isMuted !== 'function' || !isInitialized) return;
             if (player.isMuted()) {
                 player.unMute();
                 isMuted = false;
@@ -813,25 +1172,42 @@
         function toggleDimLights() {
             isDimmed = !isDimmed;
             console.log("Dim Lights Toggled:", isDimmed);
-
             bodyElement.classList.toggle('dimmed', isDimmed);
             tvContainer.classList.toggle('dimmed', isDimmed);
             viewportDimmer.classList.toggle('active', isDimmed);
             dimSlider.classList.toggle('dimmed', isDimmed);
             lightsLabel.classList.toggle('dimmed', isDimmed);
+            lightsLabel.textContent = isDimmed ? "Lights On" : "Lights Off"; // Update label text
         }
 
+        // --- Event Listeners Setup ---
         function setupEventListeners() {
-            channelKnob.addEventListener('click', loadRandomVideo);
+             // Use fetchAndLoadYouTubeVideo for the shuffle knob
+            channelKnob.addEventListener('click', () => {
+                 if (!channelKnob.disabled) { // Check if knob is enabled (user is logged in)
+                    fetchAndLoadYouTubeVideo();
+                 } else {
+                      console.log("Shuffle disabled. Please sign in.");
+                      showOverlay(loadingOverlay, "PLEASE SIGN IN\nTO SHUFFLE");
+                      hideVCRStaticEffect();
+                 }
+            });
             muteKnob.addEventListener('click', toggleMute);
             dimSlider.addEventListener('click', toggleDimLights);
+            saveButton.addEventListener('click', saveCurrentVideoToWatchLater);
+            signOutButton.addEventListener('click', handleSignOut);
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log("DOM Ready. Setting up listeners and loading API.");
-            setupEventListeners();
-            loadYouTubeAPI();
-        });
+        // --- Initialization ---
+        // Using window.onload to ensure GIS library is ready
+         window.onload = function () {
+             console.log("Window loaded. Initializing GIS and setting up app.");
+             initializeGis(); // Initialize Google Identity Services first
+             setupEventListeners();
+             loadYouTubeAPI(); // Load YouTube API now
+             updateAuthUI(false); // Start in logged-out UI state
+         };
+
     </script>
 
 </body>
